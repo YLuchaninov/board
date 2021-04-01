@@ -94,8 +94,7 @@ class _GridWidgetState extends State<GridWidget> {
     }
 
     // clear menuOpened & selected
-    final output =
-        _handlers.keys.where((key) => !newHandlers.keys.contains(key));
+    final output = _handlers.keys.where((k) => !newHandlers.keys.contains(k));
     output.forEach((key) {
       if (_handlers[key].index == selected) {
         selected = null;
@@ -117,31 +116,11 @@ class _GridWidgetState extends State<GridWidget> {
       assert(child is PreferredSizeWidget);
 
       final handler = _handlers[child.key];
-
-      double x, y;
-      if (widget.positions[i] != null) {
-        x = widget.positions[i].dx;
-        y = widget.positions[i].dy;
-      } else {
-        // place child without position into the center of viewport
-        final viewPortSize = widget.size / widget.scale;
-        final translation = widget.rootController.value.getTranslation();
-        x = viewPortSize.width / 2 - translation.x / widget.scale;
-        y = viewPortSize.height / 2 - translation.y / widget.scale;
-
-        // center widget
-        final size = (child as PreferredSizeWidget).preferredSize;
-        x -= size.width.isFinite ? size.width / 2 : 0;
-        y -= size.height.isFinite ? size.height / 2 : 0;
-
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) => widget.onPositionChange?.call(i, Offset(x, y)),
-        );
-      }
+      final offset = widget.positions[i] ?? _placeWidgetToCenter(i, child);
 
       result.add(Positioned(
-        top: y,
-        left: x,
+        top: offset.dy,
+        left: offset.dx,
         child: IgnorePointer(
           ignoring: !widget.enable,
           child: BoardItem(
@@ -149,24 +128,24 @@ class _GridWidgetState extends State<GridWidget> {
             scale: widget.scale,
             child: child,
             handler: handler,
-            onTap: createOnItemTap(i),
-            onLongPress: createOnItemLongPress(i),
+            onTap: _createOnItemTap(i),
+            onLongPress: _createOnItemLongPress(i),
           ),
         ),
       ));
     }
 
     if (selected != null && menuOpened) {
-      result.add(buildMenu(context));
+      result.add(_buildMenu(context));
     }
 
     return result;
   }
 
-  close() => setState(() => menuOpened = false);
+  _close() => setState(() => menuOpened = false);
 
-  Widget buildMenu(BuildContext context) {
-    final menu = widget.menuBuilder(context, selected, close);
+  Widget _buildMenu(BuildContext context) {
+    final menu = widget.menuBuilder(context, selected, _close);
 
     assert(menu is PreferredSizeWidget);
 
@@ -187,7 +166,7 @@ class _GridWidgetState extends State<GridWidget> {
     );
   }
 
-  VoidCallback createOnItemTap(int index) {
+  VoidCallback _createOnItemTap(int index) {
     return () {
       setState(() {
         selected = selected == index ? null : index;
@@ -197,7 +176,7 @@ class _GridWidgetState extends State<GridWidget> {
     };
   }
 
-  VoidCallback createOnItemLongPress(int index) {
+  VoidCallback _createOnItemLongPress(int index) {
     return () {
       var requestFlag = false;
       menuOpened = widget.longPressMenu;
@@ -213,7 +192,7 @@ class _GridWidgetState extends State<GridWidget> {
     };
   }
 
-  onBoardTap(_) {
+  _onBoardTap(_) {
     if (menuOpened) {
       setState(() {
         menuOpened = false;
@@ -231,7 +210,7 @@ class _GridWidgetState extends State<GridWidget> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: onBoardTap,
+      onTapDown: _onBoardTap,
       child: SizedBox(
         width: widget.width,
         height: widget.height,
@@ -250,36 +229,58 @@ class _GridWidgetState extends State<GridWidget> {
                 children: _wrapChildren(context),
               );
             },
-            onWillAccept: (data) => data != null,
-            onAcceptWithDetails: (DragTargetDetails position) {
-              // drop new item
-              if (!(position.data is ItemHandler)) {
-                final RenderBox renderObject =
-                    _key.currentContext.findRenderObject();
-                final localOffset = renderObject.globalToLocal(position.offset);
-                // todo center widget
-
-                widget.onAddFromSource?.call(position.data, localOffset);
-                return true;
+            onWillAccept: (handler) => handler != null,
+            onAcceptWithDetails: (DragTargetDetails event) {
+              if (event.data is ItemHandler) {
+                _dropExistItem(event.data, event.offset);
+              } else {
+                _dropNewItem(event.data, event.offset);
               }
-
-              // drop exist item
-              setState(() {
-                final data = (position.data as ItemHandler);
-                RenderBox renderObject = _key.currentContext.findRenderObject();
-                final localOffset = renderObject.globalToLocal(position.offset);
-                final offset =
-                    (data.globalKey.currentState as BoardItemState).offset;
-                final newPosition =
-                    localOffset - offset * (widget.scale - 1) / widget.scale;
-
-                widget.onPositionChange?.call(data.index, newPosition);
-              });
               return true;
             },
           ),
         ),
       ),
     );
+  }
+
+  _dropNewItem(Handler handler, Offset offset) {
+    final RenderBox renderObject = _key.currentContext.findRenderObject();
+    final localOffset = renderObject.globalToLocal(offset);
+    // todo center widget
+
+    widget.onAddFromSource?.call(handler, localOffset);
+  }
+
+  _dropExistItem(Handler handler, Offset offset) {
+    setState(() {
+      final data = (handler as ItemHandler);
+      final renderObject = _key.currentContext.findRenderObject() as RenderBox;
+      final _local = renderObject.globalToLocal(offset);
+      final _offset = (data.globalKey.currentState as BoardItemState).offset;
+      final _position = _local - _offset * (widget.scale - 1) / widget.scale;
+
+      widget.onPositionChange?.call(data.index, _position);
+    });
+  }
+
+  Offset _placeWidgetToCenter(int index, PreferredSizeWidget child) {
+    // place child without position into the center of viewport
+    final viewPortSize = widget.size / widget.scale;
+    final translation = widget.rootController.value.getTranslation();
+    var x = viewPortSize.width / 2 - translation.x / widget.scale;
+    var y = viewPortSize.height / 2 - translation.y / widget.scale;
+
+    // center widget
+    final size = child.preferredSize;
+    x -= size.width.isFinite ? size.width / 2 : 0;
+    y -= size.height.isFinite ? size.height / 2 : 0;
+
+    final result = Offset(x, y);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => widget.onPositionChange?.call(index, result),
+    );
+
+    return result;
   }
 }
