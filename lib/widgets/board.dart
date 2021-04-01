@@ -9,6 +9,7 @@ typedef void OnAddFromSource(Handler handler, Offset dropPosition);
 class Board extends StatefulWidget {
   final IndexedWidgetBuilder itemBuilder;
   final int itemCount;
+  final bool longPressMenu;
   final IndexedWidgetBuilder menuBuilder;
   final double height;
   final double width;
@@ -20,13 +21,13 @@ class Board extends StatefulWidget {
   final double minScale;
   final double maxScale;
   final double scale;
-  final ValueSetter<double> onScaleChange;
+  final ValueChanged<double> onScaleChange;
   final OnAddFromSource onAddFromSource;
   final OnPositionChange onPositionChange;
   final Map<int, Offset> positions;
   final bool enable;
-  final ValueChanged<int> onItemTap;
   final VoidCallback onBoardTap;
+  final ValueChanged<int> onSelectChange;
 
   const Board({
     Key key,
@@ -48,8 +49,9 @@ class Board extends StatefulWidget {
     this.onPositionChange,
     this.onAddFromSource,
     this.enable = true,
+    this.longPressMenu = true,
     this.onBoardTap,
-    this.onItemTap,
+    this.onSelectChange,
   })  : assert(positions != null),
         super(key: key);
 
@@ -142,8 +144,9 @@ class _BoardState extends State<Board> {
               rootController: controller,
               size: Size(constraints.maxWidth, constraints.maxHeight),
               onBoardTap: widget.onBoardTap,
-              onItemTap: widget.onItemTap,
               menuBuilder: widget.menuBuilder,
+              longPressMenu: widget.longPressMenu,
+              onSelectChange: widget.onSelectChange,
             ),
           ),
         );

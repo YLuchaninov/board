@@ -4,6 +4,5 @@ A Board Flutter package.
 
 ## TODO
 
-* integrate selection mechanism & longpress processing
-* centering widget when dropping or adding
+* centering widget when dropping
 * stick by rules in grid

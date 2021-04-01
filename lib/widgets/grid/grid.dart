@@ -23,8 +23,9 @@ class GridWidget extends StatefulWidget {
   final TransformationController rootController;
   final OnAddFromSource onAddFromSource;
   final VoidCallback onBoardTap;
-  final ValueChanged<int> onItemTap;
   final IndexedWidgetBuilder menuBuilder;
+  final bool longPressMenu;
+  final ValueChanged<int> onSelectChange;
 
   const GridWidget({
     Key key,
@@ -45,8 +46,9 @@ class GridWidget extends StatefulWidget {
     this.size,
     this.rootController,
     this.onBoardTap,
-    this.onItemTap,
     this.menuBuilder,
+    this.longPressMenu,
+    this.onSelectChange,
   }) : super(key: key);
 
   @override
@@ -56,7 +58,8 @@ class GridWidget extends StatefulWidget {
 class _GridWidgetState extends State<GridWidget> {
   var _key = GlobalKey();
   var _handlers = <Key, ItemHandler>{};
-  var menuIndex = -1;
+  int selected;
+  var menuOpened = false;
 
   @override
   initState() {
@@ -133,26 +136,14 @@ class _GridWidgetState extends State<GridWidget> {
             scale: widget.scale,
             child: child,
             handler: handler,
-            onTap: () {
-              if (menuIndex != -1) {
-                closeMenu();
-              } else {
-                widget.onItemTap?.call(i);
-              }
-            },
-            onLongPress: () {
-              if (menuIndex == -1) {
-                openMenu(i);
-              } else {
-                closeMenu();
-              }
-            },
+            onTap: createOnItemTap(i),
+            onLongPress: createOnItemLongPress(i),
           ),
         ),
       ));
     }
 
-    if (menuIndex != -1) {
+    if (selected != null && menuOpened) {
       result.add(buildMenu(context));
     }
 
@@ -160,15 +151,15 @@ class _GridWidgetState extends State<GridWidget> {
   }
 
   Widget buildMenu(BuildContext context) {
-    final menu = widget.menuBuilder(context, menuIndex);
+    final menu = widget.menuBuilder(context, selected);
 
     assert(menu is PreferredSizeWidget);
 
     final size = (menu as PreferredSizeWidget).preferredSize;
-    final child = widget.itemBuilder(context, menuIndex);
+    final child = widget.itemBuilder(context, selected);
     final key = _handlers[child.key].globalKey;
     final offset = (key.currentState as BoardItemState).offset;
-    final position = widget.positions[menuIndex] + offset;
+    final position = widget.positions[selected] + offset;
 
     // todo centred menu
 
@@ -181,20 +172,51 @@ class _GridWidgetState extends State<GridWidget> {
     );
   }
 
-  openMenu(int index) => setState(() => menuIndex = index);
+  VoidCallback createOnItemTap(int index) {
+    return () {
+      setState(() {
+        selected = selected == index ? null : index;
+        menuOpened = false;
+      });
+      widget.onSelectChange?.call(selected);
+    };
+  }
 
-  closeMenu() => setState(() => menuIndex = -1);
+  VoidCallback createOnItemLongPress(int index) {
+    return () {
+      var requestFlag = false;
+      menuOpened = widget.longPressMenu;
+      if (selected != index) {
+        requestFlag = true;
+        selected = index;
+        widget.onSelectChange?.call(selected);
+      }
+
+      if (requestFlag || menuOpened) {
+        setState(() {});
+      }
+    };
+  }
+
+  onBoardTap(_) {
+    if (menuOpened) {
+      setState(() {
+        menuOpened = false;
+        selected = null;
+      });
+      widget.onSelectChange?.call(selected);
+    } else if (selected != null) {
+      setState(() => selected = null);
+      widget.onSelectChange?.call(selected);
+    } else {
+      widget.onBoardTap?.call();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        if (menuIndex != -1) {
-          closeMenu();
-        } else {
-          widget.onBoardTap?.call();
-        }
-      },
+      onTapDown: onBoardTap,
       child: SizedBox(
         width: widget.width,
         height: widget.height,
@@ -213,10 +235,7 @@ class _GridWidgetState extends State<GridWidget> {
                 children: _wrapChildren(context),
               );
             },
-            onWillAccept: (data) {
-              if (data == null) return false;
-              return true;
-            },
+            onWillAccept: (data) => data != null,
             onAcceptWithDetails: (DragTargetDetails position) {
               // drop new item
               if (!(position.data is ItemHandler)) {

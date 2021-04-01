@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final children = <_Handler>[];
   final positions = <int, Offset>{};
   double scale = 1;
-  int selectedIndex = -1;
+  int selectedIndex;
 
   @override
   void dispose() {
@@ -135,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ToolButton(
                   title: 'Delete',
                   onPressed: () {
-                    if (selectedIndex == -1) return;
+                    if (selectedIndex == null) return;
 
                     setState(() {
                       for (int i = selectedIndex;
@@ -145,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                       positions.remove(children.length - 1);
                       children.removeAt(selectedIndex);
-                      selectedIndex = -1;
+                      selectedIndex = null; // todo process
                     });
                   },
                 )
@@ -167,13 +167,11 @@ class _HomeScreenState extends State<HomeScreen> {
               maxScale: _HomeScreenState.maxScale,
               scale: scale,
               onScaleChange: onScaleChange,
-              onItemTap: (index) => setState(() {
-                selectedIndex = index;
-              }),
-              onBoardTap: () => setState(() {
-                selectedIndex = -1;
-              }),
+              longPressMenu: true,
               menuBuilder: (context, index) => MenuWidget(),
+              onSelectChange: (index) {
+                selectedIndex = index;
+              }
             ),
           ),
         ],
