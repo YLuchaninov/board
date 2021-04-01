@@ -5,12 +5,13 @@ import 'grid/handler.dart';
 
 typedef void OnPositionChange(int index, Offset offset);
 typedef void OnAddFromSource(Handler handler, Offset dropPosition);
+typedef Widget IndexedMenuBuilder(BuildContext context, int index, VoidCallback close);
 
 class Board extends StatefulWidget {
   final IndexedWidgetBuilder itemBuilder;
   final int itemCount;
   final bool longPressMenu;
-  final IndexedWidgetBuilder menuBuilder;
+  final IndexedMenuBuilder menuBuilder;
   final double height;
   final double width;
   final Color lineColor;

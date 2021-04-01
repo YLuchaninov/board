@@ -23,7 +23,7 @@ class GridWidget extends StatefulWidget {
   final TransformationController rootController;
   final OnAddFromSource onAddFromSource;
   final VoidCallback onBoardTap;
-  final IndexedWidgetBuilder menuBuilder;
+  final IndexedMenuBuilder menuBuilder;
   final bool longPressMenu;
   final ValueChanged<int> onSelectChange;
 
@@ -163,8 +163,10 @@ class _GridWidgetState extends State<GridWidget> {
     return result;
   }
 
+  close() => setState(() => menuOpened = false);
+
   Widget buildMenu(BuildContext context) {
-    final menu = widget.menuBuilder(context, selected);
+    final menu = widget.menuBuilder(context, selected, close);
 
     assert(menu is PreferredSizeWidget);
 

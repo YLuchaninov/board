@@ -46,7 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget itemBuilder(context, index) {
-    print('itemBuilder $selectedIndex');
     switch (children[index].type) {
       case 1:
         return Type1(
@@ -169,9 +168,10 @@ class _HomeScreenState extends State<HomeScreen> {
               scale: scale,
               onScaleChange: onScaleChange,
               longPressMenu: true,
-              menuBuilder: (context, index) => MenuWidget(
+              menuBuilder: (context, index, close) => MenuWidget(
                 onDelete: () => deleteItem(index),
                 onCopy: () {
+                  close();
                   setState(() {
                     children.add(children[index].clone(uuid.v1()));
                   });
