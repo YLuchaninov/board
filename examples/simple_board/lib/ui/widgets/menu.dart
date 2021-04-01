@@ -29,5 +29,5 @@ class MenuWidget extends StatelessWidget with PreferredSizeWidget{
   }
 
   @override
-  Size get preferredSize => Size(240, 100);
+  Size get preferredSize => Size(240, 97);
 }
