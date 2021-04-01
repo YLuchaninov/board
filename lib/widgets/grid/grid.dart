@@ -93,6 +93,19 @@ class _GridWidgetState extends State<GridWidget> {
       );
     }
 
+    // clear menuOpened & selected
+    final output =
+        _handlers.keys.where((key) => !newHandlers.keys.contains(key));
+    output.forEach((key) {
+      if (_handlers[key].index == selected) {
+        selected = null;
+        menuOpened = false;
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => widget.onSelectChange?.call(selected),
+        );
+      }
+    });
+
     _handlers.clear();
     _handlers = newHandlers;
   }
