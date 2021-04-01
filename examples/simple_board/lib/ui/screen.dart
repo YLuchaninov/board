@@ -46,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget itemBuilder(context, index) {
+    print('itemBuilder $selectedIndex');
     switch (children[index].type) {
       case 1:
         return Type1(
@@ -69,6 +70,19 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         );
     }
+  }
+
+  deleteItem(int index) {
+    if (index == null) return;
+
+    setState(() {
+      for (int i = index; i < children.length - 1; i++) {
+        positions[i] = positions[i + 1];
+      }
+      positions.remove(children.length - 1);
+      children.removeAt(index);
+      selectedIndex = null;
+    });
   }
 
   @override
@@ -134,20 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 ToolButton(
                   title: 'Delete',
-                  onPressed: () {
-                    if (selectedIndex == null) return;
-
-                    setState(() {
-                      for (int i = selectedIndex;
-                          i < children.length - 1;
-                          i++) {
-                        positions[i] = positions[i + 1];
-                      }
-                      positions.remove(children.length - 1);
-                      children.removeAt(selectedIndex);
-                      selectedIndex = null; // todo process
-                    });
-                  },
+                  onPressed: () => deleteItem(selectedIndex),
                 )
               ],
             ),
@@ -168,10 +169,15 @@ class _HomeScreenState extends State<HomeScreen> {
               scale: scale,
               onScaleChange: onScaleChange,
               longPressMenu: true,
-              menuBuilder: (context, index) => MenuWidget(),
-              onSelectChange: (index) {
-                selectedIndex = index;
-              }
+              menuBuilder: (context, index) => MenuWidget(
+                onDelete: () => deleteItem(index),
+                onCopy: () {
+                  setState(() {
+                    children.add(children[index].clone(uuid.v1()));
+                  });
+                },
+              ),
+              onSelectChange: (index) => setState(() => selectedIndex = index),
             ),
           ),
         ],
@@ -190,4 +196,12 @@ class _Handler extends Handler {
     @required this.key,
     this.data,
   });
+
+  _Handler clone(String key) {
+    return _Handler(
+      type: type,
+      key: key,
+      data: data,
+    );
+  }
 }
