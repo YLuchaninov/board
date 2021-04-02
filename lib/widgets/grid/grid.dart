@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'grid_painter.dart';
 import 'handler.dart';
+import 'empty_painter.dart';
 import '../item/item.dart';
 import '../../board.dart';
 
@@ -9,13 +10,14 @@ class GridWidget extends StatefulWidget {
   final IndexedWidgetBuilder itemBuilder;
   final int itemCount;
   final Map<int, Offset> positions;
-  final bool isVisible;
   final double height;
   final double width;
+  final bool showGrid;
   final double cellWidth;
   final double cellHeight;
   final Color color;
-  final bool snapToGrid;
+  final double dotLength;
+  final double strokeWidth;
   final double scale;
   final OnPositionChange onPositionChange;
   final bool enable;
@@ -26,6 +28,7 @@ class GridWidget extends StatefulWidget {
   final IndexedMenuBuilder menuBuilder;
   final bool longPressMenu;
   final ValueChanged<int> onSelectChange;
+  final CustomPainter gridPainter;
 
   const GridWidget({
     Key key,
@@ -34,11 +37,12 @@ class GridWidget extends StatefulWidget {
     this.positions,
     this.width,
     this.height,
-    this.isVisible,
+    this.showGrid,
     this.cellWidth,
     this.cellHeight,
     this.color,
-    this.snapToGrid,
+    this.dotLength,
+    this.strokeWidth,
     this.scale,
     this.onPositionChange,
     this.onAddFromSource,
@@ -49,6 +53,7 @@ class GridWidget extends StatefulWidget {
     this.menuBuilder,
     this.longPressMenu,
     this.onSelectChange,
+    this.gridPainter,
   }) : super(key: key);
 
   @override
@@ -215,12 +220,13 @@ class _GridWidgetState extends State<GridWidget> {
         width: widget.width,
         height: widget.height,
         child: CustomPaint(
-          painter: GridPainter(
-            isVisible: widget.isVisible,
+          painter: widget.showGrid ? widget.gridPainter ?? GridPainter(
             color: widget.color,
-            cellHeight: widget.cellHeight,
             cellWidth: widget.cellWidth,
-          ),
+            cellHeight: widget.cellHeight,
+            dotLength: widget.dotLength,
+            strokeWidth: widget.strokeWidth,
+          ) : EmptyPainter(),
           child: DragTarget<Handler>(
             builder: (context, candidateItems, rejectedItems) {
               return Stack(

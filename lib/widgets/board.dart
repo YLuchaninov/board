@@ -5,7 +5,12 @@ import 'grid/handler.dart';
 
 typedef void OnPositionChange(int index, Offset offset);
 typedef void OnAddFromSource(Handler handler, Offset dropPosition);
-typedef Widget IndexedMenuBuilder(BuildContext context, int index, VoidCallback close);
+typedef Widget IndexedMenuBuilder(
+  BuildContext context,
+  int index,
+  VoidCallback close,
+);
+typedef Offset AnchorSetter(Offset position);
 
 class Board extends StatefulWidget {
   final IndexedWidgetBuilder itemBuilder;
@@ -14,11 +19,6 @@ class Board extends StatefulWidget {
   final IndexedMenuBuilder menuBuilder;
   final double height;
   final double width;
-  final Color lineColor;
-  final bool isGridVisible;
-  final double cellWidth;
-  final double cellHeight;
-  final bool snapToGrid;
   final double minScale;
   final double maxScale;
   final double scale;
@@ -29,30 +29,41 @@ class Board extends StatefulWidget {
   final bool enable;
   final VoidCallback onBoardTap;
   final ValueChanged<int> onSelectChange;
+  final AnchorSetter anchorSetter;
+  final CustomPainter gridPainter;
+  final bool showGrid;
+  final double cellWidth;
+  final double cellHeight;
+  final Color color;
+  final double dotLength;
+  final double strokeWidth;
 
   const Board({
     Key key,
-    this.menuBuilder,
+    this.enable = true,
     @required this.itemBuilder,
     @required this.itemCount,
     @required this.positions,
     @required this.height,
     @required this.width,
-    this.lineColor = Colors.black54,
-    this.isGridVisible = true,
-    this.snapToGrid = true,
-    this.cellHeight = 30,
-    this.cellWidth = 30,
+    this.longPressMenu = false,
+    this.menuBuilder,
+    this.scale = 1,
     this.minScale = 0.5,
     this.maxScale = 2.5,
-    this.scale = 1,
     this.onScaleChange,
     this.onPositionChange,
-    this.onAddFromSource,
-    this.enable = true,
-    this.longPressMenu = true,
-    this.onBoardTap,
     this.onSelectChange,
+    this.onAddFromSource,
+    this.onBoardTap,
+    this.anchorSetter,
+    this.gridPainter,
+    this.showGrid = true,
+    this.color = Colors.black54,
+    this.cellWidth = 30,
+    this.cellHeight = 30,
+    this.dotLength = 10,
+    this.strokeWidth = 0.3,
   })  : assert(positions != null),
         super(key: key);
 
@@ -128,15 +139,10 @@ class _BoardState extends State<Board> {
             transformationController: controller,
             panEnabled: true,
             child: GridWidget(
-              isVisible: widget.isGridVisible,
               width: widget.width,
               height: widget.height,
-              color: widget.lineColor,
               itemBuilder: widget.itemBuilder,
               itemCount: widget.itemCount,
-              cellHeight: widget.cellHeight,
-              cellWidth: widget.cellWidth,
-              snapToGrid: widget.snapToGrid,
               scale: scale,
               onPositionChange: widget.onPositionChange,
               onAddFromSource: widget.onAddFromSource,
@@ -148,6 +154,13 @@ class _BoardState extends State<Board> {
               menuBuilder: widget.menuBuilder,
               longPressMenu: widget.longPressMenu,
               onSelectChange: widget.onSelectChange,
+              gridPainter: widget.gridPainter,
+              showGrid: widget.showGrid,
+              cellWidth: widget.cellWidth,
+              cellHeight: widget.cellHeight,
+              color: widget.color,
+              dotLength: widget.dotLength,
+              strokeWidth: widget.strokeWidth,
             ),
           ),
         );

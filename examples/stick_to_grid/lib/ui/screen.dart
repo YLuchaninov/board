@@ -4,6 +4,7 @@ import 'package:board/board.dart';
 import 'package:uuid/uuid.dart';
 
 import 'widgets/index.dart';
+import 'painter.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -97,6 +98,10 @@ class _HomeScreenState extends State<HomeScreen> {
               onScaleChange: onScaleChange,
               longPressMenu: false,
               onSelectChange: (index) => setState(() => selectedIndex = index),
+              anchorSetter: (offset) {
+                return Offset((offset.dx/100).ceil()*100.0, offset.dy);
+              },
+              gridPainter: Painter(),
             ),
           ),
         ],
