@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
               longPressMenu: false,
               onSelectChange: (index) => setState(() => selectedIndex = index),
               anchorSetter: (offset) {
-                return Offset((offset.dx/100).ceil()*100.0, offset.dy);
+                return Offset((offset.dx/100).round()*100.0, offset.dy);
               },
               gridPainter: Painter(),
             ),

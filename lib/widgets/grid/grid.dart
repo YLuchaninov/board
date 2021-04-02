@@ -6,6 +6,8 @@ import 'empty_painter.dart';
 import '../item/item.dart';
 import '../../board.dart';
 
+const _AnimationDuration = 120;
+
 class GridWidget extends StatefulWidget {
   final IndexedWidgetBuilder itemBuilder;
   final int itemCount;
@@ -29,6 +31,7 @@ class GridWidget extends StatefulWidget {
   final bool longPressMenu;
   final ValueChanged<int> onSelectChange;
   final CustomPainter gridPainter;
+  final AnchorSetter anchorSetter;
 
   const GridWidget({
     Key key,
@@ -54,20 +57,31 @@ class GridWidget extends StatefulWidget {
     this.longPressMenu,
     this.onSelectChange,
     this.gridPainter,
+    this.anchorSetter,
   }) : super(key: key);
 
   @override
   _GridWidgetState createState() => _GridWidgetState();
 }
 
-class _GridWidgetState extends State<GridWidget> {
+class _GridWidgetState extends State<GridWidget>
+    with SingleTickerProviderStateMixin {
   var _key = GlobalKey();
   var _handlers = <Key, ItemHandler>{};
   int selected;
   var menuOpened = false;
+  AnimationController animationController;
+  Animation<Offset> animation;
+  ItemHandler animated;
 
   @override
   initState() {
+    animationController = AnimationController(
+      value: 0,
+      duration: const Duration(milliseconds: _AnimationDuration),
+      vsync: this,
+    );
+    animationController.addListener(_onAnimation);
     _fillPositions();
     super.initState();
   }
@@ -80,6 +94,8 @@ class _GridWidgetState extends State<GridWidget> {
 
   @override
   void dispose() {
+    animationController.removeListener(_onAnimation);
+    animationController.dispose();
     _handlers.clear();
     super.dispose();
   }
@@ -92,15 +108,22 @@ class _GridWidgetState extends State<GridWidget> {
 
       assert(key != null, 'Board child widget should contain a Key');
 
-      newHandlers[key] = ItemHandler(
+      final handler = ItemHandler(
         index: i,
         globalKey: _handlers[key]?.globalKey ?? GlobalKey<BoardItemState>(),
       );
+      newHandlers[key] = handler;
+
+      if (_handlers[key] == null &&
+          widget.anchorSetter != null &&
+          widget.positions[i] != null) {
+        _stickToGrid(handler, widget.positions[i]);
+      }
     }
 
     // clear menuOpened & selected
-    final output = _handlers.keys.where((k) => !newHandlers.keys.contains(k));
-    output.forEach((key) {
+    final removed = _handlers.keys.where((k) => !newHandlers.keys.contains(k));
+    removed.forEach((key) {
       if (_handlers[key].index == selected) {
         selected = null;
         menuOpened = false;
@@ -121,7 +144,11 @@ class _GridWidgetState extends State<GridWidget> {
       assert(child is PreferredSizeWidget);
 
       final handler = _handlers[child.key];
-      final offset = widget.positions[i] ?? _placeWidgetToCenter(i, child);
+      var offset = widget.positions[i] ?? _placeWidgetToCenter(i, child);
+
+      if (handler.globalKey == animated?.globalKey) {
+        offset = animation.value;
+      }
 
       result.add(Positioned(
         top: offset.dy,
@@ -220,13 +247,16 @@ class _GridWidgetState extends State<GridWidget> {
         width: widget.width,
         height: widget.height,
         child: CustomPaint(
-          painter: widget.showGrid ? widget.gridPainter ?? GridPainter(
-            color: widget.color,
-            cellWidth: widget.cellWidth,
-            cellHeight: widget.cellHeight,
-            dotLength: widget.dotLength,
-            strokeWidth: widget.strokeWidth,
-          ) : EmptyPainter(),
+          painter: widget.showGrid
+              ? widget.gridPainter ??
+                  GridPainter(
+                    color: widget.color,
+                    cellWidth: widget.cellWidth,
+                    cellHeight: widget.cellHeight,
+                    dotLength: widget.dotLength,
+                    strokeWidth: widget.strokeWidth,
+                  )
+              : EmptyPainter(),
           child: DragTarget<Handler>(
             builder: (context, candidateItems, rejectedItems) {
               return Stack(
@@ -252,10 +282,10 @@ class _GridWidgetState extends State<GridWidget> {
 
   _dropNewItem(Handler handler, Offset offset) {
     final RenderBox renderObject = _key.currentContext.findRenderObject();
-    final localOffset = renderObject.globalToLocal(offset);
+    final _position = renderObject.globalToLocal(offset);
     // todo center widget
 
-    widget.onAddFromSource?.call(handler, localOffset);
+    widget.onAddFromSource?.call(handler, _position);
   }
 
   _dropExistItem(Handler handler, Offset offset) {
@@ -267,6 +297,7 @@ class _GridWidgetState extends State<GridWidget> {
       final _position = _local - _offset * (widget.scale - 1) / widget.scale;
 
       widget.onPositionChange?.call(data.index, _position);
+      _stickToGrid(handler, _position);
     });
   }
 
@@ -282,11 +313,30 @@ class _GridWidgetState extends State<GridWidget> {
     x -= size.width.isFinite ? size.width / 2 : 0;
     y -= size.height.isFinite ? size.height / 2 : 0;
 
-    final result = Offset(x, y);
+    final _position = Offset(x, y);
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) => widget.onPositionChange?.call(index, result),
+      (_) => widget.onPositionChange?.call(index, _position),
     );
+    _stickToGrid(_handlers[child.key], _position);
 
-    return result;
+    return _position;
   }
+
+  _stickToGrid(ItemHandler handler, Offset from) {
+    if (widget.anchorSetter == null) return;
+    final to = widget.anchorSetter(from);
+    animation =
+        Tween<Offset>(begin: from, end: to).animate(animationController);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      animated = handler;
+      animationController.forward(from: 0).whenComplete(() {
+        animated = null;
+        animation = null;
+        widget.onPositionChange?.call(handler.index, to);
+      });
+    });
+  }
+
+  _onAnimation() => setState(() {});
 }

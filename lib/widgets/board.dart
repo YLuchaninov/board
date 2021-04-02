@@ -161,6 +161,7 @@ class _BoardState extends State<Board> {
               color: widget.color,
               dotLength: widget.dotLength,
               strokeWidth: widget.strokeWidth,
+              anchorSetter: widget.anchorSetter,
             ),
           ),
         );
