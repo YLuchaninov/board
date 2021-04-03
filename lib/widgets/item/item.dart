@@ -9,6 +9,7 @@ class BoardItem extends StatefulWidget {
   final double scale;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
+  final bool enable;
 
   const BoardItem({
     Key key,
@@ -17,6 +18,7 @@ class BoardItem extends StatefulWidget {
     this.child,
     this.onTap,
     this.onLongPress,
+    this.enable,
   }) : super(key: key);
 
   @override
@@ -29,6 +31,10 @@ class BoardItemState extends State<BoardItem> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.enable) {
+      return widget.child;
+    }
+
     return RawGestureDetector(
       gestures: {
         TapGestureRecognizer:
@@ -50,6 +56,7 @@ class BoardItemState extends State<BoardItem> {
           });
         },
         child: Draggable<Handler>(
+          maxSimultaneousDrags: 1,
           childWhenDragging: Container(),
           feedback: Transform.translate(
             offset: Offset(

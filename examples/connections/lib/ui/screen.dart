@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final positions = <int, Offset>{};
   double scale = 1;
   int selectedIndex;
+  bool enable = true;
 
   @override
   void dispose() {
@@ -77,11 +78,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   boardData: _Handler(key: uuid.v1()),
                 ),
+                SizedBox(
+                  height: 48,
+                ),
+                ToolButton(
+                  title: enable ? 'Disable': 'Enable',
+                  onPressed: () {
+                    setState(() => enable = !enable);
+                  },
+                )
               ],
             ),
           ),
           Expanded(
             child: Board(
+              enable: enable,
               itemBuilder: itemBuilder,
               itemCount: children.length,
               positions: positions,

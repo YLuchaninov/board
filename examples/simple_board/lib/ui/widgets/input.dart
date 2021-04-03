@@ -23,6 +23,7 @@ class _InputNodeState extends State<InputNode> {
   final controller = TextEditingController();
   final focusNode = FocusNode();
   String text;
+  bool selected;
 
   @override
   void initState() {
@@ -31,6 +32,7 @@ class _InputNodeState extends State<InputNode> {
     } else {
       focusNode.unfocus();
     }
+    selected = widget.selected;
 
     text = widget.text;
     controller.text = widget.text;
@@ -47,10 +49,13 @@ class _InputNodeState extends State<InputNode> {
       });
     }
 
-    if (widget.selected) {
-      focusNode.requestFocus();
-    } else {
-      focusNode.unfocus();
+    if(widget.selected != selected) {
+      selected = widget.selected;
+      if (widget.selected) {
+        focusNode.requestFocus();
+      } else {
+        focusNode.unfocus();
+      }
     }
 
     super.didUpdateWidget(oldWidget);

@@ -77,7 +77,6 @@ class _BoardState extends State<Board> {
   final ValueNotifier<bool> isPointerDown = ValueNotifier<bool>(false);
   final ValueNotifier<Offset> pointerOffset =
       ValueNotifier<Offset>(Offset.zero);
-  final ValueNotifier<bool> drawState = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -125,19 +124,39 @@ class _BoardState extends State<Board> {
     // todo make scroll bar
   }
 
+  var pointerDown = false;
+
+  _onPointerDown(event) {
+    setState(() {
+      pointerDown = true;
+    });
+  }
+
+  _onPointerUp(event) {
+    setState(() {
+      pointerDown = false;
+    });
+  }
+
+  _onPointerMove(PointerMoveEvent event) {
+    //if (pointerDown) print(event.localPosition);
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (_, constraints) {
-        return IgnorePointer(
-          ignoring: drawState.value,
+        return Listener(
+          onPointerDown: _onPointerDown,
+          onPointerUp: _onPointerUp,
+          onPointerMove: _onPointerMove,
           child: InteractiveViewer(
             minScale: widget.minScale,
             maxScale: widget.maxScale,
-            scaleEnabled: true,
+            scaleEnabled: true, // todo
             constrained: false,
             transformationController: controller,
-            panEnabled: true,
+            panEnabled: true, // todo
             child: GridWidget(
               width: widget.width,
               height: widget.height,

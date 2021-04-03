@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final positions = <int, Offset>{};
   double scale = 1;
   int selectedIndex;
+  bool enable = true;
 
   @override
   void dispose() {
@@ -148,12 +149,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 ToolButton(
                   title: 'Delete',
                   onPressed: () => deleteItem(selectedIndex),
-                )
+                ),
+                SizedBox(
+                  height: 48,
+                ),
+                ToolButton(
+                  title: enable ? 'Off' : 'On',
+                  onPressed: () => setState(() => enable = !enable),
+                ),
               ],
             ),
           ),
           Expanded(
             child: Board(
+              enable: enable,
               itemBuilder: itemBuilder,
               itemCount: children.length,
               positions: positions,

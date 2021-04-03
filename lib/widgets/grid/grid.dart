@@ -153,16 +153,14 @@ class _GridWidgetState extends State<GridWidget>
       result.add(Positioned(
         top: offset.dy,
         left: offset.dx,
-        child: IgnorePointer(
-          ignoring: !widget.enable,
-          child: BoardItem(
-            key: handler.globalKey,
-            scale: widget.scale,
-            child: child,
-            handler: handler,
-            onTap: _createOnItemTap(i),
-            onLongPress: _createOnItemLongPress(i),
-          ),
+        child: BoardItem(
+          enable: widget.enable,
+          key: handler.globalKey,
+          scale: widget.scale,
+          child: child,
+          handler: handler,
+          onTap: _createOnItemTap(i),
+          onLongPress: _createOnItemLongPress(i),
         ),
       ));
     }
