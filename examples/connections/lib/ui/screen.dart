@@ -21,7 +21,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final positions = <int, Offset>{};
   double scale = 1;
   int selectedIndex;
-  bool enable = true;
 
   @override
   void dispose() {
@@ -50,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Item(
       title: 'Rect',
       selected: selectedIndex == index,
+      data: _Data(children[index]),
       key: Key(children[index].key),
     );
   }
@@ -74,25 +74,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   feedback: Transform.scale(
                     scale: scale,
-                    child: Item(title: 'Rect'),
+                    child: Item(title: 'Rect', data: null),
                   ),
                   boardData: _Handler(key: uuid.v1()),
                 ),
-                SizedBox(
-                  height: 48,
-                ),
-                ToolButton(
-                  title: enable ? 'Disable': 'Enable',
-                  onPressed: () {
-                    setState(() => enable = !enable);
-                  },
-                )
               ],
             ),
           ),
           Expanded(
             child: Board(
-              enable: enable,
               itemBuilder: itemBuilder,
               itemCount: children.length,
               positions: positions,
@@ -108,6 +98,10 @@ class _HomeScreenState extends State<HomeScreen> {
               onScaleChange: onScaleChange,
               longPressMenu: false,
               onSelectChange: (index) => setState(() => selectedIndex = index),
+              approveDraw: (start, end){
+                print('start: $start - end: $end');
+                return true;
+              },
             ),
           ),
         ],
@@ -122,4 +116,16 @@ class _Handler extends Handler {
   _Handler({
     @required this.key,
   });
+
+  @override
+  String toString() => key;
+}
+
+class _Data extends AnchorData {
+  final _Handler handler;
+
+  _Data(this.handler);
+
+  @override
+  String toString() => 'Data: $handler';
 }

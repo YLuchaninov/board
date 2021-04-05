@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'grid/grid.dart';
 import 'grid/handler.dart';
+import 'connections/path_drawer.dart';
+import 'connections/anchor_handler.dart';
 
 typedef void OnPositionChange(int index, Offset offset);
 typedef void OnAddFromSource(Handler handler, Offset dropPosition);
@@ -11,6 +13,7 @@ typedef Widget IndexedMenuBuilder(
   VoidCallback close,
 );
 typedef Offset AnchorSetter(Offset position);
+typedef bool ApproveDraw(AnchorData startData, AnchorData endData);
 
 class Board extends StatefulWidget {
   final IndexedWidgetBuilder itemBuilder;
@@ -37,6 +40,7 @@ class Board extends StatefulWidget {
   final Color color;
   final double dotLength;
   final double strokeWidth;
+  final ApproveDraw approveDraw;
 
   const Board({
     Key key,
@@ -64,6 +68,7 @@ class Board extends StatefulWidget {
     this.cellHeight = 30,
     this.dotLength = 10,
     this.strokeWidth = 0.3,
+    this.approveDraw,
   })  : assert(positions != null),
         super(key: key);
 
@@ -72,14 +77,13 @@ class Board extends StatefulWidget {
 }
 
 class _BoardState extends State<Board> {
+  final ValueNotifier<bool> drawSate = ValueNotifier<bool>(false);
   TransformationController controller;
   double scale = 1;
-  final ValueNotifier<bool> isPointerDown = ValueNotifier<bool>(false);
-  final ValueNotifier<Offset> pointerOffset =
-      ValueNotifier<Offset>(Offset.zero);
 
   @override
   void initState() {
+    drawSate.addListener(_onDrawStateChange);
     controller = TransformationController();
     controller.addListener(_listener);
 
@@ -106,11 +110,14 @@ class _BoardState extends State<Board> {
 
   @override
   void dispose() {
+    drawSate.removeListener(_onDrawStateChange);
     controller.removeListener(_listener);
     controller.dispose();
     controller = null;
     super.dispose();
   }
+
+  _onDrawStateChange() => setState(() {});
 
   void _listener() {
     final newScale = controller.value.getMaxScaleOnAxis();
@@ -124,39 +131,21 @@ class _BoardState extends State<Board> {
     // todo make scroll bar
   }
 
-  var pointerDown = false;
-
-  _onPointerDown(event) {
-    setState(() {
-      pointerDown = true;
-    });
-  }
-
-  _onPointerUp(event) {
-    setState(() {
-      pointerDown = false;
-    });
-  }
-
-  _onPointerMove(PointerMoveEvent event) {
-    //if (pointerDown) print(event.localPosition);
-  }
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (_, constraints) {
-        return Listener(
-          onPointerDown: _onPointerDown,
-          onPointerUp: _onPointerUp,
-          onPointerMove: _onPointerMove,
-          child: InteractiveViewer(
-            minScale: widget.minScale,
-            maxScale: widget.maxScale,
-            scaleEnabled: true, // todo
-            constrained: false,
-            transformationController: controller,
-            panEnabled: true, // todo
+        return InteractiveViewer(
+          minScale: widget.minScale,
+          maxScale: widget.maxScale,
+          scaleEnabled: !drawSate.value,
+          constrained: false,
+          transformationController: controller,
+          panEnabled: !drawSate.value,
+          child: PathDrawer(
+            enable: widget.enable,
+            drawSate: drawSate,
+            approveDraw: widget.approveDraw,
             child: GridWidget(
               width: widget.width,
               height: widget.height,
@@ -166,7 +155,7 @@ class _BoardState extends State<Board> {
               onPositionChange: widget.onPositionChange,
               onAddFromSource: widget.onAddFromSource,
               positions: widget.positions,
-              enable: widget.enable,
+              enable: widget.enable && !drawSate.value,
               rootController: controller,
               size: Size(constraints.maxWidth, constraints.maxHeight),
               onBoardTap: widget.onBoardTap,
