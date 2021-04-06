@@ -80,6 +80,7 @@ class _BoardState extends State<Board> {
   final ValueNotifier<bool> drawSate = ValueNotifier<bool>(false);
   TransformationController controller;
   double scale = 1;
+  GlobalKey key = GlobalKey();
 
   @override
   void initState() {
@@ -133,47 +134,45 @@ class _BoardState extends State<Board> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (_, constraints) {
-        return InteractiveViewer(
-          minScale: widget.minScale,
-          maxScale: widget.maxScale,
-          scaleEnabled: !drawSate.value,
-          constrained: false,
-          transformationController: controller,
-          panEnabled: !drawSate.value,
-          child: PathDrawer(
-            enable: widget.enable,
-            drawSate: drawSate,
-            approveDraw: widget.approveDraw,
-            child: GridWidget(
-              width: widget.width,
-              height: widget.height,
-              itemBuilder: widget.itemBuilder,
-              itemCount: widget.itemCount,
-              scale: scale,
-              onPositionChange: widget.onPositionChange,
-              onAddFromSource: widget.onAddFromSource,
-              positions: widget.positions,
-              enable: widget.enable && !drawSate.value,
-              rootController: controller,
-              size: Size(constraints.maxWidth, constraints.maxHeight),
-              onBoardTap: widget.onBoardTap,
-              menuBuilder: widget.menuBuilder,
-              longPressMenu: widget.longPressMenu,
-              onSelectChange: widget.onSelectChange,
-              gridPainter: widget.gridPainter,
-              showGrid: widget.showGrid,
-              cellWidth: widget.cellWidth,
-              cellHeight: widget.cellHeight,
-              color: widget.color,
-              dotLength: widget.dotLength,
-              strokeWidth: widget.strokeWidth,
-              anchorSetter: widget.anchorSetter,
-            ),
+    return Container(
+      key: key,
+      child: InteractiveViewer(
+        minScale: widget.minScale,
+        maxScale: widget.maxScale,
+        scaleEnabled: !drawSate.value,
+        constrained: false,
+        transformationController: controller,
+        panEnabled: !drawSate.value,
+        child: PathDrawer(
+          enable: widget.enable,
+          drawSate: drawSate,
+          approveDraw: widget.approveDraw,
+          child: GridWidget(
+            viewPortKey: key,
+            width: widget.width,
+            height: widget.height,
+            itemBuilder: widget.itemBuilder,
+            itemCount: widget.itemCount,
+            scale: scale,
+            onPositionChange: widget.onPositionChange,
+            onAddFromSource: widget.onAddFromSource,
+            positions: widget.positions,
+            enable: widget.enable && !drawSate.value,
+            onBoardTap: widget.onBoardTap,
+            menuBuilder: widget.menuBuilder,
+            longPressMenu: widget.longPressMenu,
+            onSelectChange: widget.onSelectChange,
+            gridPainter: widget.gridPainter,
+            showGrid: widget.showGrid,
+            cellWidth: widget.cellWidth,
+            cellHeight: widget.cellHeight,
+            color: widget.color,
+            dotLength: widget.dotLength,
+            strokeWidth: widget.strokeWidth,
+            anchorSetter: widget.anchorSetter,
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
