@@ -1,1 +1,5 @@
-abstract class AnchorData {}
+class AnchorData {
+  final dynamic data;
+
+  AnchorData(this.data);
+}

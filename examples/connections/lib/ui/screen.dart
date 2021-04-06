@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Item(
       title: 'Rect',
       selected: selectedIndex == index,
-      data: _Data(children[index]),
+      data: children[index],
       key: Key(children[index].key),
     );
   }
@@ -98,10 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onScaleChange: onScaleChange,
               longPressMenu: false,
               onSelectChange: (index) => setState(() => selectedIndex = index),
-              approveDraw: (start, end){
-                print('start: $start - end: $end');
-                return true;
-              },
+              approveDraw: (start, end) => start != end,
             ),
           ),
         ],
@@ -119,13 +116,10 @@ class _Handler extends Handler {
 
   @override
   String toString() => key;
-}
-
-class _Data extends AnchorData {
-  final _Handler handler;
-
-  _Data(this.handler);
 
   @override
-  String toString() => 'Data: $handler';
+  bool operator ==(Object other) => other is _Handler && other.key == key;
+
+  @override
+  int get hashCode => key.hashCode;
 }

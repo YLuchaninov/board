@@ -35,7 +35,7 @@ class _PathDrawerState extends State<PathDrawer> {
   AnchorData startData;
 
   _onPointerDown(Offset tapOffset, AnchorData data) {
-    if(!widget.enable) return;
+    if (!widget.enable) return;
 
     widget.drawSate.value = true;
 
@@ -58,21 +58,22 @@ class _PathDrawerState extends State<PathDrawer> {
   }
 
   _onPointerUp(Offset tapLocalOffset, AnchorData data) {
-    if(!widget.enable) return;
+    if (!widget.enable) return;
 
     widget.drawSate.value = false;
 
-    if(widget.approveDraw != null && widget.approveDraw(startData, data)){
-      setState(() {
-        connections.add(Connection(
-          start: start,
-          end: tapLocalOffset,
-        ));
-
-        end = start = Offset.zero;
-        startData = null;
-      });
+    if (widget.approveDraw != null &&
+        widget.approveDraw(startData.data, data.data)) {
+      connections.add(Connection(
+        start: start,
+        end: tapLocalOffset,
+      ));
     }
+
+    setState(() {
+      end = start = Offset.zero;
+      startData = null;
+    });
   }
 
   _onPointerCancel() {
@@ -103,7 +104,6 @@ class _PathDrawerState extends State<PathDrawer> {
       if (entry != null) {
         final target = entry.target;
         final dynamic metaData = (target as RenderMetaData).metaData;
-        print(metaData as AnchorData);
         _onPointerUp(tapOffset, (metaData as AnchorData));
       } else {
         _onPointerCancel();

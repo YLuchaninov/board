@@ -13,7 +13,7 @@ typedef Widget IndexedMenuBuilder(
   VoidCallback close,
 );
 typedef Offset AnchorSetter(Offset position);
-typedef bool ApproveDraw(AnchorData startData, AnchorData endData);
+typedef bool ApproveDraw(dynamic startData, dynamic endData);
 
 class Board extends StatefulWidget {
   final IndexedWidgetBuilder itemBuilder;

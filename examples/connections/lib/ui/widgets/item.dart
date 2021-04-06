@@ -4,7 +4,7 @@ import 'package:board/board.dart';
 class Item extends StatelessWidget with PreferredSizeWidget {
   final String title;
   final bool selected;
-  final AnchorData data;
+  final dynamic data;
 
   const Item({
     Key key,

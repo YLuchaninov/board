@@ -5,7 +5,7 @@ import 'anchor_handler.dart';
 
 class DrawAnchor extends StatelessWidget {
   final Widget child;
-  final AnchorData data;
+  final dynamic data;
 
   const DrawAnchor({
     Key key,
@@ -15,15 +15,16 @@ class DrawAnchor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final anchorData = AnchorData(data);
     final interceptor = PathDrawer.of(context);
 
     return MetaData(
-      metaData: data,
+      metaData: anchorData,
       child: Listener(
         onPointerDown: (PointerDownEvent event) =>
-            interceptor.onPointerDown(event.position, data),
+            interceptor.onPointerDown(event.position, anchorData), // todo center
         onPointerUp: (PointerUpEvent event) =>
-            interceptor.onPointerUp(event.position),
+            interceptor.onPointerUp(event.position), // todo center
         onPointerCancel: (_) => interceptor.onPointerCancel(),
         child: child,
       ),
