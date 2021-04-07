@@ -147,6 +147,7 @@ class _BoardState extends State<Board> {
           enable: widget.enable,
           drawSate: drawSate,
           approveDraw: widget.approveDraw,
+          scale: scale,
           child: GridWidget(
             viewPortKey: key,
             width: widget.width,

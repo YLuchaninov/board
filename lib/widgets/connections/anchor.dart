@@ -17,14 +17,22 @@ class DrawAnchor extends StatelessWidget {
   Widget build(BuildContext context) {
     final anchorData = AnchorData(data);
     final interceptor = PathDrawer.of(context);
+    final key = GlobalKey();
 
     return MetaData(
+      key: key,
       metaData: anchorData,
       child: Listener(
-        onPointerDown: (PointerDownEvent event) =>
-            interceptor.onPointerDown(event.position, anchorData), // todo center
-        onPointerUp: (PointerUpEvent event) =>
-            interceptor.onPointerUp(event.position), // todo center
+        onPointerDown: (PointerDownEvent event) {
+          final renderBox = key.currentContext.findRenderObject() as RenderBox;
+          interceptor.onPointerDown(
+            globalTap: event.position,
+            data: anchorData,
+            size: renderBox.size,
+            position: renderBox.localToGlobal(Offset.zero),
+          );
+        },
+        onPointerUp: (PointerUpEvent event) => interceptor.onPointerUp(event.position),
         onPointerCancel: (_) => interceptor.onPointerCancel(),
         child: child,
       ),

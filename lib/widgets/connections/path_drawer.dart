@@ -7,6 +7,13 @@ import 'anchor_handler.dart';
 import 'line_painter.dart';
 import '../../board.dart';
 
+typedef PointerNotifier({
+  Offset globalTap,
+  AnchorData data,
+  Size size,
+  Offset position,
+});
+
 class PathDrawer extends StatefulWidget {
   static _TapInterceptor of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_TapInterceptor>();
@@ -15,6 +22,7 @@ class PathDrawer extends StatefulWidget {
   final bool enable;
   final ValueNotifier<bool> drawSate;
   final ApproveDraw approveDraw;
+  final double scale;
 
   const PathDrawer({
     Key key,
@@ -22,6 +30,7 @@ class PathDrawer extends StatefulWidget {
     this.child,
     this.drawSate,
     this.approveDraw,
+    this.scale,
   }) : super(key: key);
 
   @override
@@ -34,14 +43,22 @@ class _PathDrawerState extends State<PathDrawer> {
   var end = Offset.zero;
   AnchorData startData;
 
-  _onPointerDown(Offset tapOffset, AnchorData data) {
+  _onPointerDown({
+    Offset globalTap,
+    AnchorData data,
+    Size size,
+    Offset position,
+  }) {
     if (!widget.enable) return;
 
     widget.drawSate.value = true;
 
     final renderObj = context.findRenderObject();
     if (renderObj is RenderBox) {
-      tapOffset = renderObj.globalToLocal(tapOffset);
+      // from the anchor center
+      position += Offset(size.width / 2, size.height / 2) * widget.scale;
+      final tapOffset = renderObj.globalToLocal(position);
+
       end = start = tapOffset;
       startData = data;
 
@@ -57,13 +74,23 @@ class _PathDrawerState extends State<PathDrawer> {
     }
   }
 
-  _onPointerUp(Offset tapLocalOffset, AnchorData data) {
+  _onPointerUp({
+    Offset globalTap,
+    AnchorData data,
+    Size size,
+    Offset position,
+  }) {
     if (!widget.enable) return;
 
     widget.drawSate.value = false;
 
     if (widget.approveDraw != null &&
         widget.approveDraw(startData.data, data.data)) {
+      // from the anchor center
+      final renderBox = context.findRenderObject() as RenderBox;
+      position += Offset(size.width / 2, size.height / 2) * widget.scale;
+      final tapLocalOffset = renderBox.globalToLocal(position);
+
       connections.add(Connection(
         start: start,
         end: tapLocalOffset,
@@ -87,10 +114,10 @@ class _PathDrawerState extends State<PathDrawer> {
   _extractAnchorData(Offset tapOffset) {
     final renderObj = context.findRenderObject();
     if (renderObj is RenderBox) {
-      tapOffset = renderObj.globalToLocal(tapOffset);
+      final localOffset = renderObj.globalToLocal(tapOffset);
 
       final hitTestResult = BoxHitTestResult();
-      if (!renderObj.hitTest(hitTestResult, position: tapOffset)) return;
+      if (!renderObj.hitTest(hitTestResult, position: localOffset)) return;
 
       final entry = hitTestResult.path.toList().firstWhere((entry) {
         final target = entry.target;
@@ -104,7 +131,14 @@ class _PathDrawerState extends State<PathDrawer> {
       if (entry != null) {
         final target = entry.target;
         final dynamic metaData = (target as RenderMetaData).metaData;
-        _onPointerUp(tapOffset, (metaData as AnchorData));
+        final metaBox = (target as RenderMetaData);
+
+        _onPointerUp(
+          data: metaData,
+          position: metaBox.localToGlobal(Offset.zero),
+          size: metaBox.size,
+          globalTap: tapOffset,
+        );
       } else {
         _onPointerCancel();
       }
@@ -133,10 +167,8 @@ class _PathDrawerState extends State<PathDrawer> {
   }
 }
 
-typedef PointerCallback(Offset offset, AnchorData data);
-
 class _TapInterceptor extends InheritedWidget {
-  final PointerCallback onPointerDown;
+  final PointerNotifier onPointerDown;
   final ValueChanged<Offset> onPointerUp;
   final VoidCallback onPointerCancel;
 
