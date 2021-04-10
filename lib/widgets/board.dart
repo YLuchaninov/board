@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'grid/grid.dart';
 import 'grid/handler.dart';
 import 'connections/path_drawer.dart';
-import 'connections/anchor_handler.dart';
 
 typedef void OnPositionChange(int index, Offset offset);
 typedef void OnAddFromSource(Handler handler, Offset dropPosition);
@@ -13,9 +12,9 @@ typedef Widget IndexedMenuBuilder(
   VoidCallback close,
 );
 typedef Offset AnchorSetter(Offset position);
-typedef bool ApproveDraw(dynamic startData, dynamic endData);
+typedef OnConnectionCreate<T>(T startData, T endData);
 
-class Board extends StatefulWidget {
+class Board<T> extends StatefulWidget {
   final IndexedWidgetBuilder itemBuilder;
   final int itemCount;
   final bool longPressMenu;
@@ -40,7 +39,8 @@ class Board extends StatefulWidget {
   final Color color;
   final double dotLength;
   final double strokeWidth;
-  final ApproveDraw approveDraw;
+  final List<MapEntry<T, T>> connections;
+  final OnConnectionCreate<T> onConnectionCreate;
 
   const Board({
     Key key,
@@ -68,15 +68,16 @@ class Board extends StatefulWidget {
     this.cellHeight = 30,
     this.dotLength = 10,
     this.strokeWidth = 0.3,
-    this.approveDraw,
+    this.connections,
+    this.onConnectionCreate,
   })  : assert(positions != null),
         super(key: key);
 
   @override
-  _BoardState createState() => _BoardState();
+  _BoardState<T> createState() => _BoardState<T>();
 }
 
-class _BoardState extends State<Board> {
+class _BoardState<T> extends State<Board<T>> {
   final ValueNotifier<bool> drawSate = ValueNotifier<bool>(false);
   TransformationController controller;
   double scale = 1;
@@ -143,11 +144,12 @@ class _BoardState extends State<Board> {
         constrained: false,
         transformationController: controller,
         panEnabled: !drawSate.value,
-        child: PathDrawer(
+        child: PathDrawer<T>(
           enable: widget.enable,
           drawSate: drawSate,
-          approveDraw: widget.approveDraw,
           scale: scale,
+          connections: widget.connections,
+          onConnectionCreate: widget.onConnectionCreate,
           child: GridWidget(
             viewPortKey: key,
             width: widget.width,

@@ -6,3 +6,4 @@ A Board Flutter package.
 
 * centering widget when dropping(scale cases)
 * correct placing context menu depends on viewport free area
+* use Generic instead Handler class

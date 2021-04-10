@@ -19,8 +19,31 @@ class _HomeScreenState extends State<HomeScreen> {
   final uuid = Uuid();
   final children = <_Handler>[];
   final positions = <int, Offset>{};
+  final connections = <MapEntry<String, String>>[];
   double scale = 1;
   int selectedIndex;
+
+  @override
+  void initState() {
+    // predefine children
+    children.addAll([
+      _Handler(key: uuid.v1(), anchors: [uuid.v1(), uuid.v1()]),
+      _Handler(key: uuid.v1(), anchors: [uuid.v1(), uuid.v1()]),
+      _Handler(key: uuid.v1(), anchors: [uuid.v1(), uuid.v1()]),
+    ]);
+    positions[0] = Offset(50, 100);
+    positions[1] = Offset(150, 80);
+    positions[2] = Offset(80, 200);
+
+    connections.addAll([
+      MapEntry(children[0].anchors[0], children[1].anchors[0]),
+      MapEntry(children[0].anchors[1], children[2].anchors[0]),
+      MapEntry(children[1].anchors[1], children[2].anchors[1]),
+      MapEntry(children[0].anchors[1], children[2].anchors[1]),
+    ]);
+
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -49,59 +72,73 @@ class _HomeScreenState extends State<HomeScreen> {
     return Item(
       title: 'Rect',
       selected: selectedIndex == index,
-      data: children[index],
+      anchorData: children[index].anchors,
       key: Key(children[index].key),
     );
+  }
+
+  onConnectionCreate(String start, String end) {
+    print('$start - $end');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 64,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                BoardSource(
-                  source: ToolButton(
-                    title: 'Rect',
-                    onPressed: () {
-                      setState(() => children.add(_Handler(key: uuid.v1())));
-                    },
+      body: SafeArea(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 64,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  BoardSource(
+                    source: ToolButton(
+                      title: 'Rect',
+                      onPressed: () {
+                        setState(() => children.add(_Handler(
+                              key: uuid.v1(),
+                              anchors: [uuid.v1(), uuid.v1()],
+                            )));
+                      },
+                    ),
+                    feedback: Transform.scale(
+                      scale: scale,
+                      child: Item(title: 'Rect', anchorData:['','']),
+                    ),
+                    boardData: _Handler(
+                      key: uuid.v1(),
+                      anchors: [uuid.v1(), uuid.v1()],
+                    ),
                   ),
-                  feedback: Transform.scale(
-                    scale: scale,
-                    child: Item(title: 'Rect', data: null),
-                  ),
-                  boardData: _Handler(key: uuid.v1()),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: Board(
-              itemBuilder: itemBuilder,
-              itemCount: children.length,
-              positions: positions,
-              height: _HomeScreenState.height,
-              width: _HomeScreenState.width,
-              onAddFromSource: onAddFromSource,
-              onPositionChange: (index, offset) => setState(() {
-                positions[index] = offset;
-              }),
-              minScale: _HomeScreenState.minScale,
-              maxScale: _HomeScreenState.maxScale,
-              scale: scale,
-              onScaleChange: onScaleChange,
-              longPressMenu: false,
-              onSelectChange: (index) => setState(() => selectedIndex = index),
-              approveDraw: (start, end) => start != end,
+            Expanded(
+              child: Board<String>(
+                itemBuilder: itemBuilder,
+                itemCount: children.length,
+                positions: positions,
+                height: _HomeScreenState.height,
+                width: _HomeScreenState.width,
+                onAddFromSource: onAddFromSource,
+                onPositionChange: (index, offset) => setState(() {
+                  positions[index] = offset;
+                }),
+                minScale: _HomeScreenState.minScale,
+                maxScale: _HomeScreenState.maxScale,
+                scale: scale,
+                onScaleChange: onScaleChange,
+                longPressMenu: false,
+                onSelectChange: (index) =>
+                    setState(() => selectedIndex = index),
+                connections: connections,
+                onConnectionCreate: onConnectionCreate,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -109,9 +146,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class _Handler extends Handler {
   final String key;
+  final List<String> anchors;
 
   _Handler({
     @required this.key,
+    @required this.anchors,
   });
 
   @override

@@ -296,27 +296,28 @@ class _GridWidgetState extends State<GridWidget>
   }
 
   Offset _placeWidgetToCenter(int index, PreferredSizeWidget child) {
-    final renderBox = context.findRenderObject() as RenderBox;
-    var _position = -renderBox.localToGlobal(Offset.zero);
+    final renderBox = context.findRenderObject();
 
-    // place child without position into the center of viewport
-    final viewPortBox =
-        widget.viewPortKey.currentContext.findRenderObject() as RenderBox;
-    var viewPortSize = viewPortBox.size;
-    final viewPortLeftTop = viewPortBox.localToGlobal(Offset.zero);
-    final viewPortRightBottom = viewPortBox
-        .localToGlobal(Offset(viewPortSize.width, viewPortSize.height));
+     var _position = Offset.zero;
+    if (renderBox is RenderBox) {
+      final viewPortBox =
+      widget.viewPortKey.currentContext.findRenderObject() as RenderBox;
+      var viewPortSize = viewPortBox.size;
+      final viewPortLeftTop = viewPortBox.localToGlobal(Offset.zero);
+      final viewPortRightBottom = viewPortBox
+          .localToGlobal(Offset(viewPortSize.width, viewPortSize.height));
+      _position = -renderBox.localToGlobal(Offset.zero);
+      _position += viewPortLeftTop + (viewPortRightBottom - viewPortLeftTop) / 2;
 
-    _position += viewPortLeftTop + (viewPortRightBottom - viewPortLeftTop) / 2;
+      // center widget
+      final size = child.preferredSize;
+      final childOffset = Offset(
+        size.width.isFinite ? size.width / 2 : 0,
+        size.height.isFinite ? size.height / 2 : 0,
+      );
 
-    // center widget
-    final size = child.preferredSize;
-    final childOffset = Offset(
-      size.width.isFinite ? size.width / 2 : 0,
-      size.height.isFinite ? size.height / 2 : 0,
-    );
-
-    _position = _position/widget.scale - childOffset;
+      _position = _position/widget.scale - childOffset;
+    }
 
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => widget.onPositionChange?.call(index, _position),

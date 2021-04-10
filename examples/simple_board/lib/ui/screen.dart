@@ -88,108 +88,110 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 64,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                BoardSource(
-                  source: ToolButton(
-                    title: 'Circle',
+      body: SafeArea(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 64,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  BoardSource(
+                    source: ToolButton(
+                      title: 'Circle',
+                      onPressed: () {
+                        setState(() => children.add(_Handler(
+                              type: 1,
+                              key: uuid.v1(),
+                            )));
+                      },
+                    ),
+                    feedback: Transform.scale(
+                      scale: scale,
+                      child: Type1(title: 'Circle'),
+                    ),
+                    boardData: _Handler(
+                      type: 1,
+                      key: uuid.v1(),
+                    ),
+                  ),
+                  BoardSource(
+                    source: ToolButton(
+                      title: 'Rect',
+                      onPressed: () {
+                        setState(() => children.add(_Handler(
+                              type: 2,
+                              key: uuid.v1(),
+                            )));
+                      },
+                    ),
+                    feedback: Transform.scale(
+                      scale: scale,
+                      child: Type2(title: 'Rect'),
+                    ),
+                    boardData: _Handler(
+                      type: 2,
+                      key: uuid.v1(),
+                    ),
+                  ),
+                  ToolButton(
+                    title: 'Text',
                     onPressed: () {
                       setState(() => children.add(_Handler(
-                            type: 1,
+                            type: 3,
                             key: uuid.v1(),
                           )));
                     },
                   ),
-                  feedback: Transform.scale(
-                    scale: scale,
-                    child: Type1(title: 'Circle'),
+                  SizedBox(
+                    height: 48,
                   ),
-                  boardData: _Handler(
-                    type: 1,
-                    key: uuid.v1(),
+                  ToolButton(
+                    title: 'Delete',
+                    onPressed: () => deleteItem(selectedIndex),
                   ),
-                ),
-                BoardSource(
-                  source: ToolButton(
-                    title: 'Rect',
-                    onPressed: () {
-                      setState(() => children.add(_Handler(
-                            type: 2,
-                            key: uuid.v1(),
-                          )));
-                    },
+                  SizedBox(
+                    height: 48,
                   ),
-                  feedback: Transform.scale(
-                    scale: scale,
-                    child: Type2(title: 'Rect'),
+                  ToolButton(
+                    title: enable ? 'Off' : 'On',
+                    onPressed: () => setState(() => enable = !enable),
                   ),
-                  boardData: _Handler(
-                    type: 2,
-                    key: uuid.v1(),
-                  ),
-                ),
-                ToolButton(
-                  title: 'Text',
-                  onPressed: () {
-                    setState(() => children.add(_Handler(
-                          type: 3,
-                          key: uuid.v1(),
-                        )));
+                ],
+              ),
+            ),
+            Expanded(
+              child: Board(
+                enable: enable,
+                itemBuilder: itemBuilder,
+                itemCount: children.length,
+                positions: positions,
+                height: _HomeScreenState.height,
+                width: _HomeScreenState.width,
+                onAddFromSource: onAddFromSource,
+                onPositionChange: (index, offset) => setState(() {
+                  positions[index] = offset;
+                }),
+                minScale: _HomeScreenState.minScale,
+                maxScale: _HomeScreenState.maxScale,
+                scale: scale,
+                onScaleChange: onScaleChange,
+                longPressMenu: true,
+                menuBuilder: (context, index, close) => MenuWidget(
+                  onDelete: () => deleteItem(index),
+                  onCopy: () {
+                    close();
+                    setState(() {
+                      children.add(children[index].clone(uuid.v1()));
+                    });
                   },
                 ),
-                SizedBox(
-                  height: 48,
-                ),
-                ToolButton(
-                  title: 'Delete',
-                  onPressed: () => deleteItem(selectedIndex),
-                ),
-                SizedBox(
-                  height: 48,
-                ),
-                ToolButton(
-                  title: enable ? 'Off' : 'On',
-                  onPressed: () => setState(() => enable = !enable),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Board(
-              enable: enable,
-              itemBuilder: itemBuilder,
-              itemCount: children.length,
-              positions: positions,
-              height: _HomeScreenState.height,
-              width: _HomeScreenState.width,
-              onAddFromSource: onAddFromSource,
-              onPositionChange: (index, offset) => setState(() {
-                positions[index] = offset;
-              }),
-              minScale: _HomeScreenState.minScale,
-              maxScale: _HomeScreenState.maxScale,
-              scale: scale,
-              onScaleChange: onScaleChange,
-              longPressMenu: true,
-              menuBuilder: (context, index, close) => MenuWidget(
-                onDelete: () => deleteItem(index),
-                onCopy: () {
-                  close();
-                  setState(() {
-                    children.add(children[index].clone(uuid.v1()));
-                  });
-                },
+                onSelectChange: (index) => setState(() => selectedIndex = index),
               ),
-              onSelectChange: (index) => setState(() => selectedIndex = index),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

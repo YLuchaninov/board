@@ -4,12 +4,12 @@ import 'package:board/board.dart';
 class Item extends StatelessWidget with PreferredSizeWidget {
   final String title;
   final bool selected;
-  final dynamic data;
+  final List<String> anchorData;
 
   const Item({
     Key key,
     @required this.title,
-    @required this.data,
+    @required this.anchorData,
     this.selected = false,
   }) : super(key: key);
 
@@ -42,8 +42,8 @@ class Item extends StatelessWidget with PreferredSizeWidget {
             top: 10,
             width: 20,
             height: 20,
-            child: DrawAnchor(
-              data: data,
+            child: DrawAnchor<String>(
+              data: anchorData[0],
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -57,8 +57,8 @@ class Item extends StatelessWidget with PreferredSizeWidget {
             top: 10,
             width: 20,
             height: 20,
-            child: DrawAnchor(
-              data: data,
+            child: DrawAnchor<String>(
+              data: anchorData[1],
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,

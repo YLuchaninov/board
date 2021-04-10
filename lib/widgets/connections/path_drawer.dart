@@ -14,34 +14,62 @@ typedef PointerNotifier({
   Offset position,
 });
 
-class PathDrawer extends StatefulWidget {
-  static _TapInterceptor of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<_TapInterceptor>();
+class PathDrawer<T> extends StatefulWidget {
+  static _TapInterceptor of<T>(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_TapInterceptor<T>>();
 
   final Widget child;
   final bool enable;
   final ValueNotifier<bool> drawSate;
-  final ApproveDraw approveDraw;
   final double scale;
+  final List<MapEntry<T, T>> connections;
+  final OnConnectionCreate<T> onConnectionCreate;
 
   const PathDrawer({
     Key key,
     this.enable,
     this.child,
     this.drawSate,
-    this.approveDraw,
     this.scale,
+    this.connections,
+    this.onConnectionCreate,
   }) : super(key: key);
 
   @override
-  _PathDrawerState createState() => _PathDrawerState();
+  _PathDrawerState<T> createState() => _PathDrawerState<T>();
 }
 
-class _PathDrawerState extends State<PathDrawer> {
+class _PathDrawerState<T> extends State<PathDrawer<T>> {
   final connections = <Connection>[];
+  final anchors = <T, GlobalKey>{};
   var start = Offset.zero;
   var end = Offset.zero;
   AnchorData startData;
+
+  @override
+  initState() {
+    // todo
+    // todo process connection
+
+    super.initState();
+  }
+
+  @override
+  didUpdateWidget(PathDrawer oldWidget) {
+    // todo
+    // todo process connection
+    widget.connections.forEach((element) { });
+
+
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  dispose() {
+    connections.clear();
+    anchors.clear();
+    super.dispose();
+  }
 
   _onPointerDown({
     Offset globalTap,
@@ -84,18 +112,21 @@ class _PathDrawerState extends State<PathDrawer> {
 
     widget.drawSate.value = false;
 
-    if (widget.approveDraw != null &&
-        widget.approveDraw(startData.data, data.data)) {
-      // from the anchor center
-      final renderBox = context.findRenderObject() as RenderBox;
-      position += Offset(size.width / 2, size.height / 2) * widget.scale;
-      final tapLocalOffset = renderBox.globalToLocal(position);
+    // if (widget.onConnectionCreate != null &&
+    //     widget.onConnectionCreate(startData.data, data.data)) {
+    //   // from the anchor center
+    //   final renderBox = context.findRenderObject() as RenderBox;
+    //   position += Offset(size.width / 2, size.height / 2) * widget.scale;
+    //   final tapLocalOffset = renderBox.globalToLocal(position);
+    //
+    //   // todo
+    //   connections.add(Connection(
+    //     start: start,
+    //     end: tapLocalOffset,
+    //   ));
+    // }
 
-      connections.add(Connection(
-        start: start,
-        end: tapLocalOffset,
-      ));
-    }
+    widget.onConnectionCreate?.call(startData.data, data.data);
 
     setState(() {
       end = start = Offset.zero;
@@ -122,7 +153,7 @@ class _PathDrawerState extends State<PathDrawer> {
       final entry = hitTestResult.path.toList().firstWhere((entry) {
         final target = entry.target;
         if (target is RenderMetaData) {
-          final dynamic metaData = target.metaData;
+          final metaData = target.metaData;
           if (metaData is AnchorData) return true;
         }
         return false;
@@ -130,7 +161,7 @@ class _PathDrawerState extends State<PathDrawer> {
 
       if (entry != null) {
         final target = entry.target;
-        final dynamic metaData = (target as RenderMetaData).metaData;
+        final metaData = (target as RenderMetaData).metaData;
         final metaBox = (target as RenderMetaData);
 
         _onPointerUp(
@@ -145,6 +176,14 @@ class _PathDrawerState extends State<PathDrawer> {
     }
   }
 
+  registerAnchor(T data, GlobalKey key) {
+    anchors[data] = key;
+  }
+
+  unregisterAnchor(T data) {
+    anchors.remove(data);
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
@@ -154,7 +193,7 @@ class _PathDrawerState extends State<PathDrawer> {
         end: end,
         connections: connections,
       ),
-      child: _TapInterceptor(
+      child: _TapInterceptor<T>(
         child: Listener(
           onPointerMove: _positionListener,
           child: widget.child,
@@ -162,15 +201,21 @@ class _PathDrawerState extends State<PathDrawer> {
         onPointerDown: _onPointerDown,
         onPointerUp: _extractAnchorData,
         onPointerCancel: _onPointerCancel,
+        register: registerAnchor,
+        unregister: unregisterAnchor,
       ),
     );
   }
 }
 
-class _TapInterceptor extends InheritedWidget {
+typedef void AnchorRegister<T>(T data, GlobalKey key);
+
+class _TapInterceptor<T> extends InheritedWidget {
   final PointerNotifier onPointerDown;
   final ValueChanged<Offset> onPointerUp;
   final VoidCallback onPointerCancel;
+  final AnchorRegister<T> register;
+  final ValueChanged<T> unregister;
 
   _TapInterceptor({
     Key key,
@@ -178,6 +223,8 @@ class _TapInterceptor extends InheritedWidget {
     @required this.onPointerUp,
     @required this.onPointerDown,
     @required this.onPointerCancel,
+    @required this.register,
+    @required this.unregister,
   }) : super(key: key, child: child);
 
   @override

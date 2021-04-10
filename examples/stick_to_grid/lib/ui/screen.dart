@@ -57,54 +57,56 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 64,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                BoardSource(
-                  source: ToolButton(
-                    title: 'Rect',
-                    onPressed: () {
-                      setState(() => children.add(_Handler(key: uuid.v1())));
-                    },
+      body: SafeArea(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 64,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  BoardSource(
+                    source: ToolButton(
+                      title: 'Rect',
+                      onPressed: () {
+                        setState(() => children.add(_Handler(key: uuid.v1())));
+                      },
+                    ),
+                    feedback: Transform.scale(
+                      scale: scale,
+                      child: Item(title: 'Rect'),
+                    ),
+                    boardData: _Handler(key: uuid.v1()),
                   ),
-                  feedback: Transform.scale(
-                    scale: scale,
-                    child: Item(title: 'Rect'),
-                  ),
-                  boardData: _Handler(key: uuid.v1()),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: Board(
-              itemBuilder: itemBuilder,
-              itemCount: children.length,
-              positions: positions,
-              height: _HomeScreenState.height,
-              width: _HomeScreenState.width,
-              onAddFromSource: onAddFromSource,
-              onPositionChange: (index, offset) => setState(() {
-                positions[index] = offset;
-              }),
-              minScale: _HomeScreenState.minScale,
-              maxScale: _HomeScreenState.maxScale,
-              scale: scale,
-              onScaleChange: onScaleChange,
-              longPressMenu: false,
-              onSelectChange: (index) => setState(() => selectedIndex = index),
-              anchorSetter: (offset) {
-                return Offset((offset.dx/100).round()*100.0, offset.dy);
-              },
-              gridPainter: Painter(),
+            Expanded(
+              child: Board(
+                itemBuilder: itemBuilder,
+                itemCount: children.length,
+                positions: positions,
+                height: _HomeScreenState.height,
+                width: _HomeScreenState.width,
+                onAddFromSource: onAddFromSource,
+                onPositionChange: (index, offset) => setState(() {
+                  positions[index] = offset;
+                }),
+                minScale: _HomeScreenState.minScale,
+                maxScale: _HomeScreenState.maxScale,
+                scale: scale,
+                onScaleChange: onScaleChange,
+                longPressMenu: false,
+                onSelectChange: (index) => setState(() => selectedIndex = index),
+                anchorSetter: (offset) {
+                  return Offset((offset.dx/100).round()*100.0, offset.dy);
+                },
+                gridPainter: Painter(),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
