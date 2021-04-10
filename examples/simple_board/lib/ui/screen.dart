@@ -17,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const minScale = 0.8;
 
   final uuid = Uuid();
-  final children = <_Handler>[];
+  final children = <Handler>[];
   final positions = <int, Offset>{};
   double scale = 1;
   int selectedIndex;
@@ -97,11 +97,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  BoardSource(
+                  BoardSource<Handler>(
                     source: ToolButton(
                       title: 'Circle',
                       onPressed: () {
-                        setState(() => children.add(_Handler(
+                        setState(() => children.add(Handler(
                               type: 1,
                               key: uuid.v1(),
                             )));
@@ -111,16 +111,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       scale: scale,
                       child: Type1(title: 'Circle'),
                     ),
-                    boardData: _Handler(
+                    boardData: Handler(
                       type: 1,
                       key: uuid.v1(),
                     ),
                   ),
-                  BoardSource(
+                  BoardSource<Handler>(
                     source: ToolButton(
                       title: 'Rect',
                       onPressed: () {
-                        setState(() => children.add(_Handler(
+                        setState(() => children.add(Handler(
                               type: 2,
                               key: uuid.v1(),
                             )));
@@ -130,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       scale: scale,
                       child: Type2(title: 'Rect'),
                     ),
-                    boardData: _Handler(
+                    boardData: Handler(
                       type: 2,
                       key: uuid.v1(),
                     ),
@@ -138,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ToolButton(
                     title: 'Text',
                     onPressed: () {
-                      setState(() => children.add(_Handler(
+                      setState(() => children.add(Handler(
                             type: 3,
                             key: uuid.v1(),
                           )));
@@ -162,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             Expanded(
-              child: Board(
+              child: Board<Handler, dynamic>(
                 enable: enable,
                 itemBuilder: itemBuilder,
                 itemCount: children.length,
@@ -197,19 +197,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _Handler extends Handler {
+class Handler {
   final int type;
   final String key;
   dynamic data;
 
-  _Handler({
+  Handler({
     @required this.type,
     @required this.key,
     this.data,
   });
 
-  _Handler clone(String key) {
-    return _Handler(
+  Handler clone(String key) {
+    return Handler(
       type: type,
       key: key,
       data: data,

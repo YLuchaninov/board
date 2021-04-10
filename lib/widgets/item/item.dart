@@ -55,7 +55,7 @@ class BoardItemState extends State<BoardItem> {
             offset = event.localPosition;
           });
         },
-        child: Draggable<Handler>(
+        child: Draggable<ItemHandler>(
           maxSimultaneousDrags: 1,
           childWhenDragging: Container(),
           feedback: Transform.translate(

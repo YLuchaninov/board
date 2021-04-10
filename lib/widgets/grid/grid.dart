@@ -4,11 +4,11 @@ import 'grid_painter.dart';
 import 'handler.dart';
 import 'empty_painter.dart';
 import '../item/item.dart';
-import '../../board.dart';
+import '../../widgets/board.dart';
 
 const _AnimationDuration = 120;
 
-class GridWidget extends StatefulWidget {
+class GridWidget<H> extends StatefulWidget {
   final IndexedWidgetBuilder itemBuilder;
   final int itemCount;
   final Map<int, Offset> positions;
@@ -23,7 +23,7 @@ class GridWidget extends StatefulWidget {
   final double scale;
   final OnPositionChange onPositionChange;
   final bool enable;
-  final OnAddFromSource onAddFromSource;
+  final OnAddFromSource<H> onAddFromSource;
   final VoidCallback onBoardTap;
   final IndexedMenuBuilder menuBuilder;
   final bool longPressMenu;
@@ -59,10 +59,10 @@ class GridWidget extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _GridWidgetState createState() => _GridWidgetState();
+  _GridWidgetState<H> createState() => _GridWidgetState<H>();
 }
 
-class _GridWidgetState extends State<GridWidget>
+class _GridWidgetState<H> extends State<GridWidget<H>>
     with SingleTickerProviderStateMixin {
   var _handlers = <Key, ItemHandler>{};
   int selected;
@@ -252,14 +252,15 @@ class _GridWidgetState extends State<GridWidget>
                     strokeWidth: widget.strokeWidth,
                   )
               : EmptyPainter(),
-          child: DragTarget<Handler>(
+          child: DragTarget<dynamic>(
             builder: (context, candidateItems, rejectedItems) {
               return Stack(
                 fit: StackFit.expand,
                 children: _wrapChildren(context),
               );
             },
-            onWillAccept: (handler) => handler != null,
+            onWillAccept: (handler) =>
+                handler != null && (handler is ItemHandler || handler is H),
             onAcceptWithDetails: (DragTargetDetails event) {
               if (event.data is ItemHandler) {
                 _dropExistItem(event.data, event.offset);
@@ -274,23 +275,22 @@ class _GridWidgetState extends State<GridWidget>
     );
   }
 
-  _dropNewItem(Handler handler, Offset offset) {
+  _dropNewItem(H sourceData, Offset offset) {
     final RenderBox renderObject = context.findRenderObject();
     final _position = renderObject.globalToLocal(offset);
     // todo center widget
 
-    widget.onAddFromSource?.call(handler, _position);
+    widget.onAddFromSource?.call(sourceData, _position);
   }
 
-  _dropExistItem(Handler handler, Offset offset) {
+  _dropExistItem(ItemHandler handler, Offset offset) {
     setState(() {
-      final data = (handler as ItemHandler);
       final renderObject = context.findRenderObject() as RenderBox;
       final _local = renderObject.globalToLocal(offset);
-      final _offset = (data.globalKey.currentState as BoardItemState).offset;
+      final _offset = (handler.globalKey.currentState as BoardItemState).offset;
       final _position = _local - _offset * (widget.scale - 1) / widget.scale;
 
-      widget.onPositionChange?.call(data.index, _position);
+      widget.onPositionChange?.call(handler.index, _position);
       _stickToGrid(handler, _position);
     });
   }
@@ -298,16 +298,17 @@ class _GridWidgetState extends State<GridWidget>
   Offset _placeWidgetToCenter(int index, PreferredSizeWidget child) {
     final renderBox = context.findRenderObject();
 
-     var _position = Offset.zero;
+    var _position = Offset.zero;
     if (renderBox is RenderBox) {
       final viewPortBox =
-      widget.viewPortKey.currentContext.findRenderObject() as RenderBox;
+          widget.viewPortKey.currentContext.findRenderObject() as RenderBox;
       var viewPortSize = viewPortBox.size;
       final viewPortLeftTop = viewPortBox.localToGlobal(Offset.zero);
       final viewPortRightBottom = viewPortBox
           .localToGlobal(Offset(viewPortSize.width, viewPortSize.height));
       _position = -renderBox.localToGlobal(Offset.zero);
-      _position += viewPortLeftTop + (viewPortRightBottom - viewPortLeftTop) / 2;
+      _position +=
+          viewPortLeftTop + (viewPortRightBottom - viewPortLeftTop) / 2;
 
       // center widget
       final size = child.preferredSize;
@@ -316,7 +317,7 @@ class _GridWidgetState extends State<GridWidget>
         size.height.isFinite ? size.height / 2 : 0,
       );
 
-      _position = _position/widget.scale - childOffset;
+      _position = _position / widget.scale - childOffset;
     }
 
     WidgetsBinding.instance.addPostFrameCallback(

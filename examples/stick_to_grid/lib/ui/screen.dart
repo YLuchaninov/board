@@ -18,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const minScale = 0.8;
 
   final uuid = Uuid();
-  final children = <_Handler>[];
+  final children = <String>[];
   final positions = <int, Offset>{};
   double scale = 1;
   int selectedIndex;
@@ -30,9 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  onAddFromSource(handler, offset) {
+  onAddFromSource(uid, offset) {
     setState(() {
-      children.add(handler);
+      children.add(uid);
       positions[children.length - 1] = offset;
     });
   }
@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Item(
       title: 'Rect',
       selected: selectedIndex == index,
-      key: Key(children[index].key),
+      key: Key(children[index]),
     );
   }
 
@@ -66,42 +66,41 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  BoardSource(
+                  BoardSource<String>(
                     source: ToolButton(
                       title: 'Rect',
                       onPressed: () {
-                        setState(() => children.add(_Handler(key: uuid.v1())));
+                        setState(() => children.add(uuid.v1()));
                       },
                     ),
                     feedback: Transform.scale(
                       scale: scale,
                       child: Item(title: 'Rect'),
                     ),
-                    boardData: _Handler(key: uuid.v1()),
+                    boardData: uuid.v1(),
                   ),
                 ],
               ),
             ),
             Expanded(
-              child: Board(
+              child: Board<String, dynamic>(
                 itemBuilder: itemBuilder,
                 itemCount: children.length,
                 positions: positions,
                 height: _HomeScreenState.height,
                 width: _HomeScreenState.width,
                 onAddFromSource: onAddFromSource,
-                onPositionChange: (index, offset) => setState(() {
-                  positions[index] = offset;
-                }),
+                onPositionChange: (index, offset) =>
+                    setState(() => positions[index] = offset),
                 minScale: _HomeScreenState.minScale,
                 maxScale: _HomeScreenState.maxScale,
                 scale: scale,
                 onScaleChange: onScaleChange,
                 longPressMenu: false,
-                onSelectChange: (index) => setState(() => selectedIndex = index),
-                anchorSetter: (offset) {
-                  return Offset((offset.dx/100).round()*100.0, offset.dy);
-                },
+                onSelectChange: (index) =>
+                    setState(() => selectedIndex = index),
+                anchorSetter: (offset) =>
+                    Offset((offset.dx / 100).round() * 100.0, offset.dy),
                 gridPainter: Painter(),
               ),
             ),
@@ -110,12 +109,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
-
-class _Handler extends Handler {
-  final String key;
-
-  _Handler({
-    @required this.key,
-  });
 }

@@ -5,7 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'connection.dart';
 import 'anchor_handler.dart';
 import 'line_painter.dart';
-import '../../board.dart';
+import '../../widgets/board.dart';
 
 typedef PointerNotifier({
   Offset globalTap,
@@ -58,7 +58,7 @@ class _PathDrawerState<T> extends State<PathDrawer<T>> {
   didUpdateWidget(PathDrawer oldWidget) {
     // todo
     // todo process connection
-    widget.connections.forEach((element) { });
+    widget.connections?.forEach((element) { });
 
 
     super.didUpdateWidget(oldWidget);

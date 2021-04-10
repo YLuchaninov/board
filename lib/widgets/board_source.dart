@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'grid/handler.dart';
 
-class BoardSource extends StatelessWidget {
+class BoardSource<H> extends StatelessWidget {
   final Widget source;
   final Widget feedback;
-  final Handler boardData;
+  final H boardData;
 
   const BoardSource({
     Key key,
@@ -16,7 +16,7 @@ class BoardSource extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Draggable<Handler>(
+    return Draggable<H>(
       feedback: Material(child: feedback, color: Colors.transparent),
       child: source,
       data: boardData,

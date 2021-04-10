@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'grid/grid.dart';
-import 'grid/handler.dart';
 import 'connections/path_drawer.dart';
 
 typedef void OnPositionChange(int index, Offset offset);
-typedef void OnAddFromSource(Handler handler, Offset dropPosition);
+typedef void OnAddFromSource<H>(H handler, Offset dropPosition);
 typedef Widget IndexedMenuBuilder(
   BuildContext context,
   int index,
@@ -14,7 +13,7 @@ typedef Widget IndexedMenuBuilder(
 typedef Offset AnchorSetter(Offset position);
 typedef OnConnectionCreate<T>(T startData, T endData);
 
-class Board<T> extends StatefulWidget {
+class Board<H, T> extends StatefulWidget {
   final IndexedWidgetBuilder itemBuilder;
   final int itemCount;
   final bool longPressMenu;
@@ -25,7 +24,7 @@ class Board<T> extends StatefulWidget {
   final double maxScale;
   final double scale;
   final ValueChanged<double> onScaleChange;
-  final OnAddFromSource onAddFromSource;
+  final OnAddFromSource<H> onAddFromSource;
   final OnPositionChange onPositionChange;
   final Map<int, Offset> positions;
   final bool enable;
@@ -74,10 +73,10 @@ class Board<T> extends StatefulWidget {
         super(key: key);
 
   @override
-  _BoardState<T> createState() => _BoardState<T>();
+  _BoardState<H, T> createState() => _BoardState<H, T>();
 }
 
-class _BoardState<T> extends State<Board<T>> {
+class _BoardState<H, T> extends State<Board<H, T>> {
   final ValueNotifier<bool> drawSate = ValueNotifier<bool>(false);
   TransformationController controller;
   double scale = 1;
@@ -150,7 +149,7 @@ class _BoardState<T> extends State<Board<T>> {
           scale: scale,
           connections: widget.connections,
           onConnectionCreate: widget.onConnectionCreate,
-          child: GridWidget(
+          child: GridWidget<H>(
             viewPortKey: key,
             width: widget.width,
             height: widget.height,

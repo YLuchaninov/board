@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-class ItemHandler extends Handler {
+class ItemHandler {
   final int index;
   final GlobalKey globalKey;
 
   ItemHandler({this.index, this.globalKey});
 }
-
-abstract class Handler {}

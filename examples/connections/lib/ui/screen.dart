@@ -1,4 +1,3 @@
-import 'package:board/widgets/grid/handler.dart';
 import 'package:flutter/material.dart';
 import 'package:board/board.dart';
 import 'package:uuid/uuid.dart';
@@ -17,7 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
   static const minScale = 0.8;
 
   final uuid = Uuid();
-  final children = <_Handler>[];
+  final children = <Handler>[];
   final positions = <int, Offset>{};
   final connections = <MapEntry<String, String>>[];
   double scale = 1;
@@ -27,9 +26,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     // predefine children
     children.addAll([
-      _Handler(key: uuid.v1(), anchors: [uuid.v1(), uuid.v1()]),
-      _Handler(key: uuid.v1(), anchors: [uuid.v1(), uuid.v1()]),
-      _Handler(key: uuid.v1(), anchors: [uuid.v1(), uuid.v1()]),
+      Handler(key: uuid.v1(), anchors: [uuid.v1(), uuid.v1()]),
+      Handler(key: uuid.v1(), anchors: [uuid.v1(), uuid.v1()]),
+      Handler(key: uuid.v1(), anchors: [uuid.v1(), uuid.v1()]),
     ]);
     positions[0] = Offset(50, 100);
     positions[1] = Offset(150, 80);
@@ -93,11 +92,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  BoardSource(
+                  BoardSource<Handler>(
                     source: ToolButton(
                       title: 'Rect',
                       onPressed: () {
-                        setState(() => children.add(_Handler(
+                        setState(() => children.add(Handler(
                               key: uuid.v1(),
                               anchors: [uuid.v1(), uuid.v1()],
                             )));
@@ -107,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       scale: scale,
                       child: Item(title: 'Rect', anchorData:['','']),
                     ),
-                    boardData: _Handler(
+                    boardData: Handler(
                       key: uuid.v1(),
                       anchors: [uuid.v1(), uuid.v1()],
                     ),
@@ -116,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             Expanded(
-              child: Board<String>(
+              child: Board<Handler, String>(
                 itemBuilder: itemBuilder,
                 itemCount: children.length,
                 positions: positions,
@@ -144,11 +143,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _Handler extends Handler {
+class Handler {
   final String key;
   final List<String> anchors;
 
-  _Handler({
+  Handler({
     @required this.key,
     @required this.anchors,
   });
@@ -157,7 +156,7 @@ class _Handler extends Handler {
   String toString() => key;
 
   @override
-  bool operator ==(Object other) => other is _Handler && other.key == key;
+  bool operator ==(Object other) => other is Handler && other.key == key;
 
   @override
   int get hashCode => key.hashCode;
