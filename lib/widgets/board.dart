@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'grid/grid.dart';
 import 'connections/path_drawer.dart';
+import 'connections/connection.dart';
 
 typedef void OnPositionChange(int index, Offset offset);
 typedef void OnAddFromSource<H>(H handler, Offset dropPosition);
@@ -38,7 +39,7 @@ class Board<H, T> extends StatefulWidget {
   final Color color;
   final double dotLength;
   final double strokeWidth;
-  final List<MapEntry<T, T>> connections;
+  final List<Connection<T>> connections;
   final OnConnectionCreate<T> onConnectionCreate;
 
   const Board({

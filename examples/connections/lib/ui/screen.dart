@@ -18,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final uuid = Uuid();
   final children = <Handler>[];
   final positions = <int, Offset>{};
-  final connections = <MapEntry<String, String>>[];
+  final connections = <Connection<String>>[];
   double scale = 1;
   int selectedIndex;
 
@@ -35,10 +35,10 @@ class _HomeScreenState extends State<HomeScreen> {
     positions[2] = Offset(80, 200);
 
     connections.addAll([
-      MapEntry(children[0].anchors[0], children[1].anchors[0]),
-      MapEntry(children[0].anchors[1], children[2].anchors[0]),
-      MapEntry(children[1].anchors[1], children[2].anchors[1]),
-      MapEntry(children[0].anchors[1], children[2].anchors[1]),
+      Connection<String>(children[0].anchors[0], children[1].anchors[0]),
+      Connection<String>(children[0].anchors[1], children[2].anchors[0]),
+      Connection<String>(children[1].anchors[1], children[2].anchors[1]),
+      Connection<String>(children[0].anchors[1], children[2].anchors[1]),
     ]);
 
     super.initState();
@@ -78,6 +78,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   onConnectionCreate(String start, String end) {
     print('$start - $end');
+    setState(() {
+      connections.add(Connection<String>(start, end));
+    });
   }
 
   @override

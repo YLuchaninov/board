@@ -19,26 +19,23 @@ class DrawAnchor<T> extends StatefulWidget {
 
 class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
   GlobalKey key = GlobalKey();
-  bool _requestToRegister = true;
 
-  @override
-  void didChangeDependencies() {
-    if (_requestToRegister) {
-      _requestToRegister = false;
-      final interceptor = PathDrawer.of<T>(context);
-      interceptor?.register(widget.data, key);
-    }
-    super.didChangeDependencies();
-  }
+  _updateRegistration() {
+    if (!mounted) return;
 
-  @override
-  void didUpdateWidget(covariant DrawAnchor oldWidget) {
-    if(widget.data != oldWidget.data) {
-      final interceptor = PathDrawer.of<T>(context);
-      interceptor?.unregister(widget.data);
-      interceptor?.register(widget.data, key);
+    final renderBox = context.findRenderObject();
+    final interceptor = PathDrawer.of<T>(context);
+    if (renderBox is RenderBox && interceptor != null) {
+      final offset = renderBox.localToGlobal(Offset.zero);
+      final size = renderBox.size;
+      interceptor.register(
+        widget.data,
+        offset + Offset(size.width / 2, size.height / 2) * interceptor.scale,
+      );
+    } else {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _updateRegistration());
     }
-    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -52,6 +49,8 @@ class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
   Widget build(BuildContext context) {
     final anchorData = AnchorData(widget.data);
     final interceptor = PathDrawer.of<T>(context);
+
+    _updateRegistration();
 
     return MetaData(
       key: key,

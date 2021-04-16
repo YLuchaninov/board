@@ -4,7 +4,7 @@ import 'connection.dart';
 class LinePainter extends CustomPainter {
   final Offset start;
   final Offset end;
-  final List<Connection> connections;
+  final Iterable<AnchorConnection> connections;
   final bool enable;
 
   LinePainter({
@@ -24,9 +24,9 @@ class LinePainter extends CustomPainter {
 
     canvas.drawLine(start, end, paint);
 
-    connections.forEach((connection) {
+    for (var connection in connections) {
       canvas.drawLine(connection.start, connection.end, paint);
-    });
+    }
   }
 
   @override

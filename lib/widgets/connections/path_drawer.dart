@@ -22,7 +22,7 @@ class PathDrawer<T> extends StatefulWidget {
   final bool enable;
   final ValueNotifier<bool> drawSate;
   final double scale;
-  final List<MapEntry<T, T>> connections;
+  final List<Connection<T>> connections;
   final OnConnectionCreate<T> onConnectionCreate;
 
   const PathDrawer({
@@ -40,28 +40,51 @@ class PathDrawer<T> extends StatefulWidget {
 }
 
 class _PathDrawerState<T> extends State<PathDrawer<T>> {
-  final connections = <Connection>[];
-  final anchors = <T, GlobalKey>{};
-  var start = Offset.zero;
-  var end = Offset.zero;
+  final connections = <Connection, AnchorConnection>{};
+  final anchors = <T, Offset>{};
+  Offset start = Offset.zero;
+  Offset end = Offset.zero;
   AnchorData startData;
+  bool requestToInit = true;
 
   @override
-  initState() {
-    // todo
-    // todo process connection
-
-    super.initState();
+  void didChangeDependencies() {
+    if (requestToInit &&
+        widget.connections != null &&
+        widget.connections.isNotEmpty) {
+      requestToInit = false;
+      _fillConnections();
+    }
+    super.didChangeDependencies();
   }
 
   @override
   didUpdateWidget(PathDrawer oldWidget) {
-    // todo
-    // todo process connection
-    widget.connections?.forEach((element) { });
-
+    setState(() {
+      _fillConnections();
+    });
 
     super.didUpdateWidget(oldWidget);
+  }
+
+  _fillConnections() {
+    if (!mounted) return;
+
+    final removed = connections.keys.where(
+      (key) => !widget.connections.contains(key),
+    );
+    removed.forEach((key) => connections.remove(key));
+
+    final box = context.findRenderObject() as RenderBox;
+    widget.connections?.forEach((connection) {
+      if (anchors[connection.start] != null &&
+          anchors[connection.end] != null) {
+        final start = box.globalToLocal(anchors[connection.start]);
+        final end = box.globalToLocal(anchors[connection.end]);
+
+        connections[connection] = AnchorConnection(start: start, end: end);
+      }
+    });
   }
 
   @override
@@ -111,21 +134,6 @@ class _PathDrawerState<T> extends State<PathDrawer<T>> {
     if (!widget.enable) return;
 
     widget.drawSate.value = false;
-
-    // if (widget.onConnectionCreate != null &&
-    //     widget.onConnectionCreate(startData.data, data.data)) {
-    //   // from the anchor center
-    //   final renderBox = context.findRenderObject() as RenderBox;
-    //   position += Offset(size.width / 2, size.height / 2) * widget.scale;
-    //   final tapLocalOffset = renderBox.globalToLocal(position);
-    //
-    //   // todo
-    //   connections.add(Connection(
-    //     start: start,
-    //     end: tapLocalOffset,
-    //   ));
-    // }
-
     widget.onConnectionCreate?.call(startData.data, data.data);
 
     setState(() {
@@ -176,22 +184,53 @@ class _PathDrawerState<T> extends State<PathDrawer<T>> {
     }
   }
 
-  registerAnchor(T data, GlobalKey key) {
-    anchors[data] = key;
+  registerAnchor(T data, Offset offset) {
+    anchors[data] = offset;
+    if (!mounted) return;
+
+    final box = context.findRenderObject() as RenderBox;
+    widget.connections?.forEach((connection) {
+      if ((connection.start == data || connection.end == data) &&
+          (anchors[connection.start] != null &&
+              anchors[connection.end] != null)) {
+        final start = box.globalToLocal(anchors[connection.start]);
+        final end = box.globalToLocal(anchors[connection.end]);
+        connections[connection] = AnchorConnection(start: start, end: end);
+      }
+    });
+
+    Future.delayed(Duration.zero, () => setState(() {}));
   }
 
   unregisterAnchor(T data) {
     anchors.remove(data);
+    print('remove');
+//    _fillConnections();
+
+    connections.clear();
+
+    Future.delayed(Duration.zero, () => setState((){}));
+
+    // Future.delayed(
+    //   Duration.zero,
+    //   () => setState(() {
+    //     final removed = connections.keys.where(
+    //           (key) => key.start == data || key.end == data,
+    //     );
+    //     removed.forEach((key) => connections.remove(key));
+    //   }),
+    // );
   }
 
   @override
   Widget build(BuildContext context) {
+    print(connections.length);
     return CustomPaint(
       foregroundPainter: LinePainter(
         enable: widget.enable,
         start: start,
         end: end,
-        connections: connections,
+        connections: connections.values.toList(growable: false),
       ),
       child: _TapInterceptor<T>(
         child: Listener(
@@ -203,12 +242,13 @@ class _PathDrawerState<T> extends State<PathDrawer<T>> {
         onPointerCancel: _onPointerCancel,
         register: registerAnchor,
         unregister: unregisterAnchor,
+        scale: widget.scale,
       ),
     );
   }
 }
 
-typedef void AnchorRegister<T>(T data, GlobalKey key);
+typedef void AnchorRegister<T>(T data, Offset offset);
 
 class _TapInterceptor<T> extends InheritedWidget {
   final PointerNotifier onPointerDown;
@@ -216,6 +256,7 @@ class _TapInterceptor<T> extends InheritedWidget {
   final VoidCallback onPointerCancel;
   final AnchorRegister<T> register;
   final ValueChanged<T> unregister;
+  final double scale;
 
   _TapInterceptor({
     Key key,
@@ -225,6 +266,7 @@ class _TapInterceptor<T> extends InheritedWidget {
     @required this.onPointerCancel,
     @required this.register,
     @required this.unregister,
+    @required this.scale,
   }) : super(key: key, child: child);
 
   @override
