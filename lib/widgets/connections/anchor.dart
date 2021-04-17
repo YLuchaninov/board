@@ -18,7 +18,6 @@ class DrawAnchor<T> extends StatefulWidget {
 }
 
 class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
-  GlobalKey key = GlobalKey();
 
   _updateRegistration() {
     if (!mounted) return;
@@ -53,7 +52,6 @@ class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
     _updateRegistration();
 
     return MetaData(
-      key: key,
       metaData: anchorData,
       child: Listener(
         onPointerDown: (PointerDownEvent event) {
