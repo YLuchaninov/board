@@ -1,4 +1,3 @@
-import 'package:board/widgets/grid/handler.dart';
 import 'package:flutter/material.dart';
 import 'package:board/board.dart';
 import 'package:uuid/uuid.dart';

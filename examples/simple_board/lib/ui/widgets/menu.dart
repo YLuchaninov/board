@@ -12,16 +12,22 @@ class MenuWidget extends StatelessWidget with PreferredSizeWidget{
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ListTile(
-            trailing: Icon(Icons.delete_forever_sharp),
-            title: Text('Delete'),
-            onTap: onDelete,
+          SizedBox(
+            height: 48,
+            child: ListTile(
+              trailing: Icon(Icons.delete_forever_sharp),
+              title: Text('Delete'),
+              onTap: onDelete,
+            ),
           ),
           Divider(height: 1),
-          ListTile(
-            trailing: Icon(Icons.add),
-            title: Text('Make a copy'),
-            onTap: onCopy,
+          SizedBox(
+            height: 48,
+            child: ListTile(
+              trailing: Icon(Icons.add),
+              title: Text('Make a copy'),
+              onTap: onCopy,
+            ),
           ),
         ],
       ),

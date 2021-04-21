@@ -204,7 +204,6 @@ class _PathDrawerState<T> extends State<PathDrawer<T>> {
 
   unregisterAnchor(T data) {
     anchors.remove(data);
-    print('remove');
 //    _fillConnections();
 
     connections.clear();
@@ -224,7 +223,6 @@ class _PathDrawerState<T> extends State<PathDrawer<T>> {
 
   @override
   Widget build(BuildContext context) {
-    print(connections.length);
     return CustomPaint(
       foregroundPainter: LinePainter(
         enable: widget.enable,

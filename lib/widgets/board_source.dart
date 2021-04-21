@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'grid/handler.dart';
-
 class BoardSource<H> extends StatelessWidget {
   final Widget source;
   final Widget feedback;

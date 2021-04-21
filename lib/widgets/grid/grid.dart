@@ -64,12 +64,12 @@ class GridWidget<H> extends StatefulWidget {
 
 class _GridWidgetState<H> extends State<GridWidget<H>>
     with SingleTickerProviderStateMixin {
-  var _handlers = <Key, ItemHandler>{};
   int selected;
   var menuOpened = false;
   AnimationController animationController;
   Animation<Offset> animation;
   ItemHandler animated;
+  var _handlers = <Key, ItemHandler>{};
 
   @override
   initState() {
@@ -79,94 +79,75 @@ class _GridWidgetState<H> extends State<GridWidget<H>>
       vsync: this,
     );
     animationController.addListener(_onAnimation);
-    _fillPositions();
     super.initState();
-  }
-
-  @override
-  void didUpdateWidget(GridWidget oldWidget) {
-    _fillPositions();
-    super.didUpdateWidget(oldWidget);
   }
 
   @override
   void dispose() {
     animationController.removeListener(_onAnimation);
+    _handlers.clear();
     animationController.dispose();
-    _handlers.clear();
     super.dispose();
-  }
-
-  void _fillPositions() {
-    final newHandlers = <Key, ItemHandler>{};
-    for (int i = 0; i < widget.itemCount; i++) {
-      final child = widget.itemBuilder(context, i);
-      final key = child.key;
-
-      assert(key != null, 'Board child widget should contain a Key');
-
-      final handler = ItemHandler(
-        index: i,
-        globalKey: _handlers[key]?.globalKey ?? GlobalKey<BoardItemState>(),
-      );
-      newHandlers[key] = handler;
-
-      if (_handlers[key] == null &&
-          widget.anchorSetter != null &&
-          widget.positions[i] != null) {
-        _stickToGrid(handler, widget.positions[i]);
-      }
-    }
-
-    // clear menuOpened & selected
-    final removed = _handlers.keys.where((k) => !newHandlers.keys.contains(k));
-    removed.forEach((key) {
-      if (_handlers[key].index == selected) {
-        selected = null;
-        menuOpened = false;
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) => widget.onSelectChange?.call(selected),
-        );
-      }
-    });
-
-    _handlers.clear();
-    _handlers = newHandlers;
   }
 
   List<Widget> _wrapChildren(BuildContext context) {
     final result = <Widget>[];
+    final keys = <Key>[];
+
     for (int i = 0; i < widget.itemCount; i++) {
       final child = widget.itemBuilder(context, i);
       assert(child is PreferredSizeWidget);
 
-      final handler = _handlers[child.key];
+      final handler = ItemHandler(
+        index: i,
+        globalKey: _handlers[child.key]?.globalKey ?? GlobalKey<BoardItemState>(),
+      );
+      _handlers[child.key] = handler;
+
       var offset = widget.positions[i] ?? _placeWidgetToCenter(i, child);
 
       if (handler.globalKey == animated?.globalKey) {
         offset = animation.value;
       }
 
-      result.add(Positioned(
-        top: offset.dy,
-        left: offset.dx,
-        child: BoardItem(
-          enable: widget.enable,
-          key: handler.globalKey,
-          scale: widget.scale,
-          child: child,
-          handler: handler,
-          onTap: _createOnItemTap(i),
-          onLongPress: _createOnItemLongPress(i),
-        ),
+      result.add(BoardItem(
+        key: handler.globalKey,
+        offset: offset,
+        enable: widget.enable,
+        child: child,
+        onTap: _createOnItemTap(i),
+        onLongPress: _createOnItemLongPress(i),
+        onPositionChange: (newOffset) {
+          widget.onPositionChange?.call(i, newOffset);
+          _stickToGrid(_handlers[child.key], newOffset);
+        },
       ));
+      keys.add(child.key);
     }
 
+    _clearHandlers(keys);
     if (selected != null && menuOpened) {
       result.add(_buildMenu(context));
     }
 
     return result;
+  }
+
+  _clearHandlers(List<Key> keys) {
+    _handlers.removeWhere((key, handler) {
+      if (!keys.contains(key)) {
+        if (_handlers[key].index == selected) {
+          selected = null;
+          menuOpened = false;
+          WidgetsBinding.instance.addPostFrameCallback(
+                (_) => widget.onSelectChange?.call(selected),
+          );
+        }
+        return true;
+      }
+      return false;
+    });
+    keys.clear();
   }
 
   _close() => setState(() => menuOpened = false);
@@ -179,7 +160,7 @@ class _GridWidgetState<H> extends State<GridWidget<H>>
     final size = (menu as PreferredSizeWidget).preferredSize;
     final child = widget.itemBuilder(context, selected);
     final key = _handlers[child.key].globalKey;
-    final offset = (key.currentState as BoardItemState).offset;
+    final offset = (key.currentState as BoardItemState).panOffset;
     final position = widget.positions[selected] + offset;
 
     // todo centred menu
@@ -259,16 +240,9 @@ class _GridWidgetState<H> extends State<GridWidget<H>>
                 children: _wrapChildren(context),
               );
             },
-            onWillAccept: (handler) =>
-                handler != null && (handler is ItemHandler || handler is H),
-            onAcceptWithDetails: (DragTargetDetails event) {
-              if (event.data is ItemHandler) {
-                _dropExistItem(event.data, event.offset);
-              } else {
-                _dropNewItem(event.data, event.offset);
-              }
-              return true;
-            },
+            onWillAccept: (handler) => handler != null && handler is H,
+            onAcceptWithDetails: (DragTargetDetails event) =>
+                _dropNewItem(event.data, event.offset),
           ),
         ),
       ),
@@ -281,18 +255,7 @@ class _GridWidgetState<H> extends State<GridWidget<H>>
     // todo center widget
 
     widget.onAddFromSource?.call(sourceData, _position);
-  }
-
-  _dropExistItem(ItemHandler handler, Offset offset) {
-    setState(() {
-      final renderObject = context.findRenderObject() as RenderBox;
-      final _local = renderObject.globalToLocal(offset);
-      final _offset = (handler.globalKey.currentState as BoardItemState).offset;
-      final _position = _local - _offset * (widget.scale - 1) / widget.scale;
-
-      widget.onPositionChange?.call(handler.index, _position);
-      _stickToGrid(handler, _position);
-    });
+    return true;
   }
 
   Offset _placeWidgetToCenter(int index, PreferredSizeWidget child) {
