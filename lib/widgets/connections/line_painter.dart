@@ -16,17 +16,17 @@ class LinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (!enable) return;
-
     final paint = Paint()
       ..color = Colors.deepOrange
       ..strokeWidth = 2;
 
-    canvas.drawLine(start, end, paint);
-
     for (var connection in connections) {
       canvas.drawLine(connection.start, connection.end, paint);
     }
+
+    if (!enable) return;
+    canvas.drawLine(start, end, paint);
+
   }
 
   @override

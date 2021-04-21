@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final connections = <Connection<String>>[];
   double scale = 1;
   int selectedIndex;
+  bool enable = true;
 
   @override
   void initState() {
@@ -77,7 +78,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   onConnectionCreate(String start, String end) {
-    print('$start - $end');
     setState(() {
       connections.add(Connection<String>(start, end));
     });
@@ -107,18 +107,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     feedback: Transform.scale(
                       scale: scale,
-                      child: Item(title: 'Rect', anchorData:['','']),
+                      child: Item(title: 'Rect', anchorData: ['', '']),
                     ),
                     boardData: Handler(
                       key: uuid.v1(),
                       anchors: [uuid.v1(), uuid.v1()],
                     ),
                   ),
+                  SizedBox(
+                    height: 48,
+                  ),
+                  ToolButton(
+                    title: enable ? 'Off' : 'On',
+                    onPressed: () {
+                      setState(() => enable = !enable);
+                    },
+                  )
                 ],
               ),
             ),
             Expanded(
               child: Board<Handler, String>(
+                enable: enable,
                 itemBuilder: itemBuilder,
                 itemCount: children.length,
                 positions: positions,
