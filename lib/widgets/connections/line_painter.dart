@@ -26,7 +26,6 @@ class LinePainter extends CustomPainter {
 
     if (!enable) return;
     canvas.drawLine(start, end, paint);
-
   }
 
   @override
