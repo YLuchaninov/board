@@ -2,6 +2,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 class BoardItem extends StatefulWidget {
+  static _RootNotifier of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_RootNotifier>();
+
   final Widget child;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
@@ -27,18 +30,18 @@ class BoardItem extends StatefulWidget {
 
 class BoardItemState extends State<BoardItem> {
   Size get size => (widget.child as PreferredSizeWidget).preferredSize;
-  Offset position;
   Offset panOffset;
+  ValueNotifier<Offset> position = ValueNotifier(Offset.zero);
 
   @override
   void initState() {
-    position = widget.offset;
+    position.value = widget.offset;
     super.initState();
   }
 
   @override
   void didUpdateWidget(covariant BoardItem oldWidget) {
-    position = widget.offset;
+    position.value = widget.offset;
     super.didUpdateWidget(oldWidget);
   }
 
@@ -53,14 +56,14 @@ class BoardItemState extends State<BoardItem> {
       onPanDown: (event) => panOffset = event.localPosition,
       onPanEnd: (event) {
         if (widget.enable) {
-          widget.onPositionChange(position);
+          widget.onPositionChange(position.value);
         }
       },
       onPanUpdate: (event) {
         panOffset = event.localPosition;
         if (widget.enable)
           setState(() {
-            position += event.delta;
+            position.value += event.delta;
           });
       },
       child: widget.child,
@@ -70,9 +73,25 @@ class BoardItemState extends State<BoardItem> {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: position.dy,
-      left: position.dx,
-      child: buildChild(context),
+      top: position.value.dy,
+      left: position.value.dx,
+      child: _RootNotifier(
+        position: position,
+        child: buildChild(context),
+      ),
     );
   }
+}
+
+class _RootNotifier extends InheritedWidget {
+  final ValueNotifier<Offset> position;
+
+  _RootNotifier({
+    Key key,
+    @required Widget child,
+    @required this.position,
+  }) : super(key: key, child: child);
+
+  @override
+  bool updateShouldNotify(_RootNotifier oldWidget) => false;
 }

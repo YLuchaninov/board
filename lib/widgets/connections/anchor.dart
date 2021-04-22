@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'path_drawer.dart';
 import 'anchor_handler.dart';
+import '../item/item.dart';
 
 class DrawAnchor<T> extends StatefulWidget {
   final Widget child;
@@ -18,6 +19,7 @@ class DrawAnchor<T> extends StatefulWidget {
 }
 
 class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
+  bool requestToInit = true;
 
   _updateRegistration() {
     if (!mounted) return;
@@ -38,9 +40,22 @@ class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
   }
 
   @override
+  void didChangeDependencies() {
+    if(requestToInit) {
+      requestToInit = false;
+      final positionNotifier = BoardItem.of(context)?.position;
+      positionNotifier?.addListener(_updateRegistration);
+    }
+
+    super.didChangeDependencies();
+  }
+
+  @override
   void deactivate() {
     final interceptor = PathDrawer.of<T>(context);
     interceptor?.unregister(widget.data);
+    final positionNotifier = BoardItem.of(context)?.position;
+    positionNotifier?.removeListener(_updateRegistration);
     super.deactivate();
   }
 
