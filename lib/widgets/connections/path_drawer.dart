@@ -75,14 +75,13 @@ class _PathDrawerState<T> extends State<PathDrawer<T>> {
     );
     removed.forEach((key) => connections.remove(key));
 
-    final box = context.findRenderObject() as RenderBox;
     widget.connections?.forEach((connection) {
       if (anchors[connection.start] != null &&
           anchors[connection.end] != null) {
-        final start = box.globalToLocal(anchors[connection.start]);
-        final end = box.globalToLocal(anchors[connection.end]);
-
-        connections[connection] = AnchorConnection(start: start, end: end);
+        connections[connection] = AnchorConnection(
+          start: anchors[connection.start],
+          end: anchors[connection.end],
+        );
       }
     });
   }
@@ -185,17 +184,17 @@ class _PathDrawerState<T> extends State<PathDrawer<T>> {
   }
 
   registerAnchor(T data, Offset offset) {
-    anchors[data] = offset;
-    if (!mounted) return;
-
     final box = context.findRenderObject() as RenderBox;
+    anchors[data] = box.globalToLocal(offset);
+
     widget.connections?.forEach((connection) {
       if ((connection.start == data || connection.end == data) &&
           (anchors[connection.start] != null &&
               anchors[connection.end] != null)) {
-        final start = box.globalToLocal(anchors[connection.start]);
-        final end = box.globalToLocal(anchors[connection.end]);
-        connections[connection] = AnchorConnection(start: start, end: end);
+        connections[connection] = AnchorConnection(
+          start: anchors[connection.start],
+          end: anchors[connection.end],
+        );
       }
     });
 
@@ -208,7 +207,7 @@ class _PathDrawerState<T> extends State<PathDrawer<T>> {
 
     connections.clear();
 
-    Future.delayed(Duration.zero, () => setState((){}));
+    Future.delayed(Duration.zero, () => setState(() {}));
 
     // Future.delayed(
     //   Duration.zero,
