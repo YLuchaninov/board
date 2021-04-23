@@ -187,7 +187,7 @@ class _PathDrawerState<T> extends State<PathDrawer<T>> {
     final box = context.findRenderObject() as RenderBox;
     anchors[data] = box.globalToLocal(offset);
 
-    widget.connections?.forEach((connection) {
+    for (var connection in widget.connections ?? []) {
       if ((connection.start == data || connection.end == data) &&
           (anchors[connection.start] != null &&
               anchors[connection.end] != null)) {
@@ -196,28 +196,16 @@ class _PathDrawerState<T> extends State<PathDrawer<T>> {
           end: anchors[connection.end],
         );
       }
-    });
+    }
 
     Future.delayed(Duration.zero, () => setState(() {}));
   }
 
   unregisterAnchor(T data) {
     anchors.remove(data);
-//    _fillConnections();
-
     connections.clear();
 
     Future.delayed(Duration.zero, () => setState(() {}));
-
-    // Future.delayed(
-    //   Duration.zero,
-    //   () => setState(() {
-    //     final removed = connections.keys.where(
-    //           (key) => key.start == data || key.end == data,
-    //     );
-    //     removed.forEach((key) => connections.remove(key));
-    //   }),
-    // );
   }
 
   @override

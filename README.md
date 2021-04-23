@@ -4,7 +4,7 @@ A Board Flutter package.
 
 ## TODO
 
-* first frame after enable widget - path drawing
+* make path_drawing as a delegate for board class
 * centering widget when dropping(scale cases)
 * correct placing context menu depends on viewport free area
 * null safety
