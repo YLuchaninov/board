@@ -20,31 +20,17 @@ class DrawAnchor<T> extends StatefulWidget {
 
 class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
   bool requestToInit = true;
-
-  _updateRegistration() {
-    if (!mounted) return;
-
-    final renderBox = context.findRenderObject();
-    final interceptor = PathDrawer.of<T>(context);
-    if (renderBox is RenderBox && interceptor != null) {
-      final offset = renderBox.localToGlobal(Offset.zero);
-      final size = renderBox.size;
-      interceptor.register(
-        widget.data,
-        offset + Offset(size.width / 2, size.height / 2) * interceptor.scale,
-      );
-    } else {
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => _updateRegistration());
-    }
-  }
+  final key = GlobalKey();
 
   @override
   void didChangeDependencies() {
-    if(requestToInit) {
+    if (requestToInit) {
       requestToInit = false;
+      final interceptor = PathDrawer.of<T>(context);
+      interceptor?.register(widget.data, key);
+
       final positionNotifier = BoardItem.of(context)?.position;
-      positionNotifier?.addListener(_updateRegistration);
+      positionNotifier?.addListener(interceptor?.notify);
     }
 
     super.didChangeDependencies();
@@ -55,7 +41,7 @@ class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
     final interceptor = PathDrawer.of<T>(context);
     interceptor?.unregister(widget.data);
     final positionNotifier = BoardItem.of(context)?.position;
-    positionNotifier?.removeListener(_updateRegistration);
+    positionNotifier?.removeListener(interceptor?.notify);
     super.deactivate();
   }
 
@@ -64,20 +50,12 @@ class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
     final anchorData = AnchorData(widget.data);
     final interceptor = PathDrawer.of<T>(context);
 
-    _updateRegistration();
-
     return MetaData(
+      key: key,
       metaData: anchorData,
       child: Listener(
-        onPointerDown: (PointerDownEvent event) {
-          final renderBox = context.findRenderObject() as RenderBox;
-          interceptor.onPointerDown(
-            globalTap: event.position,
-            data: anchorData,
-            size: renderBox.size,
-            position: renderBox.localToGlobal(Offset.zero),
-          );
-        },
+        onPointerDown: (PointerDownEvent event) =>
+            interceptor.onPointerDown(widget.data),
         onPointerUp: (PointerUpEvent event) =>
             interceptor.onPointerUp(event.position),
         onPointerCancel: (_) => interceptor.onPointerCancel(),
