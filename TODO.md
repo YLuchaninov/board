@@ -22,6 +22,5 @@
 
 ## CHECK
 
-* connection & stick to grid functionality
 * macOS browser dragging between different dpi screens(flutter issue)
 * null safety solutions in whole project(refactoring)

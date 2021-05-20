@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/types.dart';
 
-const _AnimationDuration = 150;
+const _AnimationDuration = 100;
 
 class BoardItem extends StatefulWidget {
   final bool enabled;
@@ -68,6 +68,7 @@ class BoardItemState extends State<BoardItem>
 
   _onAnimation() => setState(() {
         _position = animation!.value;
+        widget.onDragging(_position);
       });
 
   _onPanDownBuilder() {
