@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/types.dart';
 
-const _AnimationDuration = 1000;
+const _AnimationDuration = 150;
 
 class BoardItem extends StatefulWidget {
   final bool enabled;
