@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -40,12 +41,21 @@ class ConnectionPainter<T> extends StatefulWidget {
 }
 
 class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
+  final markerPositions = <int, Offset>{}; // todo change
   final anchors = <T, GlobalKey>{};
   Offset? start = Offset.zero;
   Offset? end = Offset.zero;
   AnchorData? startData;
+  bool requested = false;
 
-  final markerPositions = <int, Offset>{}; // todo change
+  _requestToUpdate() {
+    if (!requested) {
+      requested = true;
+      WidgetsBinding.instance?.addPostFrameCallback(
+        (_) => setState(() => requested = false),
+      );
+    }
+  }
 
   @override
   initState() {
@@ -168,10 +178,12 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
 
   _register(T data, GlobalKey key) {
     anchors[data] = key;
+    _requestToUpdate();
   }
 
   _unregister(T data) {
     anchors.remove(data);
+    _requestToUpdate();
   }
 
   List<AnchorConnection> _calculateConnections() {
