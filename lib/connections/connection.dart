@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'utils.dart';
-
 class AnchorConnection {
   final Offset start;
   final Offset end;
 
-  AnchorConnection({this.start, this.end});
+  AnchorConnection({
+    required this.start,
+    required this.end,
+  });
 }
 
 class Connection<T> {
@@ -20,6 +21,5 @@ class Connection<T> {
       other is Connection<T> && other.start == start && other.end == end;
 
   @override
-  int get hashCode => hash2(start, end);
+  int get hashCode => hashValues(start, end);
 }
-

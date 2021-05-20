@@ -1,5 +1,7 @@
+export 'toolbar.dart';
 export 'button.dart';
-export 'type_1.dart';
-export 'type_2.dart';
-export 'input.dart';
+export 'vslider.dart';
+export 'type1.dart';
+export 'type2.dart';
+export 'type3.dart';
 export 'menu.dart';

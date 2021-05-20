@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 
 class InputNode extends StatefulWidget with PreferredSizeWidget{
   final bool selected;
+  final bool enabled;
   final String text;
-  final ValueChanged<String> onTextChange;
+  final String title;
+  final ValueChanged<String>? onTextChange;
 
   const InputNode({
-    Key key,
-    this.text,
-    this.selected = false,
+    Key? key,
+    required this.text,
+    required this.title,
     this.onTextChange,
+    this.selected = false,
+    this.enabled = true,
   }) : super(key: key);
 
   @override
@@ -22,8 +26,8 @@ class InputNode extends StatefulWidget with PreferredSizeWidget{
 class _InputNodeState extends State<InputNode> {
   final controller = TextEditingController();
   final focusNode = FocusNode();
-  String text;
-  bool selected;
+  late String text;
+  late bool selected;
 
   @override
   void initState() {
@@ -79,7 +83,7 @@ class _InputNodeState extends State<InputNode> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.yellow,
+        color: Colors.greenAccent,
         border: Border.all(
           color: widget.selected ? Colors.blueAccent : Colors.transparent,
           width: 2,
@@ -91,11 +95,12 @@ class _InputNodeState extends State<InputNode> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Editable Text'),
+            Text(widget.title),
             SizedBox(
               height: 8,
             ),
             TextField(
+              enabled: widget.enabled,
               maxLines: null,
               decoration: InputDecoration(
                 border: OutlineInputBorder(),

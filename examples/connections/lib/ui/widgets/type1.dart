@@ -1,46 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:board/board.dart';
 
-class Item extends StatelessWidget with PreferredSizeWidget {
+class Type1 extends StatelessWidget with PreferredSizeWidget {
   final String title;
   final bool selected;
   final List<String> anchorData;
 
-  const Item({
-    Key key,
-    @required this.title,
-    @required this.anchorData,
+  const Type1({
+    Key? key,
+    required this.title,
+    required this.anchorData,
     this.selected = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 100,
-      height: 40,
+    return SizedBox(
+      height: 50,
+      width: 120,
       child: Stack(
         children: [
           Positioned(
             top: 0,
-            bottom: 0,
+            height: 50,
             left: 10,
-            width: 80,
+            width: 100,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.lightBlueAccent,
                 border: Border.all(
-                  color: selected ? Colors.redAccent : Colors.transparent,
+                  color: selected ? Colors.deepOrange : Colors.transparent,
                   width: 2,
                 ),
+                color: Colors.blueAccent,
               ),
               alignment: Alignment.center,
-              child: Text(title),
+              child: Text(
+                title,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
           Positioned(
             left: 0,
-            top: 10,
             width: 20,
+            top: 15,
             height: 20,
             child: DrawAnchor<String>(
               data: anchorData[0],
@@ -54,8 +60,8 @@ class Item extends StatelessWidget with PreferredSizeWidget {
           ),
           Positioned(
             right: 0,
-            top: 10,
             width: 20,
+            top: 15,
             height: 20,
             child: DrawAnchor<String>(
               data: anchorData[1],
@@ -73,5 +79,5 @@ class Item extends StatelessWidget with PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size(100, 40);
+  Size get preferredSize => Size(120, 50);
 }

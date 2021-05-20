@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class ToolButton extends StatelessWidget {
-  final String title;
+  final IconData icon;
   final VoidCallback onPressed;
 
   const ToolButton({
-    Key key,
-    @required this.title,
-    @required this.onPressed,
+    Key? key,
+    required this.icon,
+    required this.onPressed,
   }) : super(key: key);
 
   @override
@@ -16,9 +16,11 @@ class ToolButton extends StatelessWidget {
       padding: const EdgeInsets.all(4.0),
       child: OutlinedButton(
         onPressed: onPressed,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(title, textAlign: TextAlign.center),
+        child: Container(
+          height: 48,
+          width: 48,
+          alignment: Alignment.center,
+          child: Icon(icon, size: 18),
         ),
       ),
     );

@@ -10,143 +10,150 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const height = 8000.0;
-  static const width = 8000.0;
-  static const maxScale = 3.0;
-  static const minScale = 0.8;
-
   final uuid = Uuid();
-  final children = <Handler>[];
-  final positions = <int, Offset>{};
+  final handlers = <_Handler>[];
   final connections = <Connection<String>>[];
-  double scale = 1;
-  int selectedIndex;
-  bool enable = true;
+
+  bool gridEnabled = true;
+  bool enabled = true;
+  int? selected;
 
   @override
   void initState() {
-    // predefine children
-    children.addAll([
-      Handler(key: uuid.v1(), anchors: [uuid.v1(), uuid.v1()]),
-      Handler(key: uuid.v1(), anchors: [uuid.v1(), uuid.v1()]),
-      Handler(key: uuid.v1(), anchors: [uuid.v1(), uuid.v1()]),
+    handlers.addAll([
+      _Handler(
+        position: Offset(50, 100),
+        key: uuid.v1(),
+        type: 1,
+        data: [uuid.v1(), uuid.v1()],
+      ),
+      _Handler(
+        position: Offset(150, 150),
+        key: uuid.v1(),
+        type: 2,
+        data: [uuid.v1(), uuid.v1(), uuid.v1(), uuid.v1()],
+      ),
+      _Handler(
+        position: Offset(50, 250),
+        key: uuid.v1(),
+        type: 1,
+        data: [uuid.v1(), uuid.v1()],
+      ),
     ]);
-    positions[0] = Offset(50, 100);
-    positions[1] = Offset(150, 80);
-    positions[2] = Offset(80, 200);
 
     connections.addAll([
-      Connection<String>(children[0].anchors[0], children[1].anchors[0]),
-      Connection<String>(children[0].anchors[1], children[2].anchors[0]),
-      Connection<String>(children[1].anchors[1], children[2].anchors[1]),
-      Connection<String>(children[0].anchors[1], children[2].anchors[1]),
+      Connection<String>(handlers[0].data[0], handlers[1].data[3]),
+      Connection<String>(handlers[0].data[1], handlers[2].data[0]),
+      Connection<String>(handlers[1].data[0], handlers[2].data[1]),
     ]);
 
     super.initState();
   }
 
-  @override
-  void dispose() {
-    children.clear();
-    positions.clear();
-    super.dispose();
-  }
-
-  onAddFromSource(handler, offset) {
-    setState(() {
-      children.add(handler);
-      positions[children.length - 1] = offset;
-    });
-  }
-
-  onScaleChange(val) {
-    setState(() {
-      if (val > _HomeScreenState.maxScale) val = _HomeScreenState.maxScale;
-      if (val < _HomeScreenState.minScale) val = _HomeScreenState.minScale;
-
-      scale = val;
-    });
-  }
-
-  Widget itemBuilder(context, index) {
-    return Item(
-      title: 'Rect',
-      selected: selectedIndex == index,
-      anchorData: children[index].anchors,
-      key: Key(children[index].key),
+  Widget _createToolbar(BuildContext context) {
+    return ToolBar(
+      children: [
+        BoardSource<_Handler>(
+          boardData: _Handler(
+            type: 1,
+            position: null,
+            key: uuid.v1(),
+            data: [uuid.v1(), uuid.v1()],
+          ),
+          feedback: Type1(title: 'Item: ', anchorData: ['', '']),
+          source: ToolButton(
+            icon: Icons.add_box,
+            onPressed: () => setState(() => handlers.add(_Handler(
+                  type: 1,
+                  position: null,
+                  key: uuid.v1(),
+                  data: [uuid.v1(), uuid.v1()],
+                ))),
+          ),
+        ),
+        BoardSource<_Handler>(
+          boardData: _Handler(
+            type: 2,
+            position: null,
+            key: uuid.v1(),
+            data: [uuid.v1(), uuid.v1(), uuid.v1(), uuid.v1()],
+          ),
+          feedback: Type2(title: 'Item: ', anchorData: ['', '', '', '']),
+          source: ToolButton(
+            icon: Icons.add_box_outlined,
+            onPressed: () => setState(() => handlers.add(_Handler(
+                  type: 2,
+                  position: null,
+                  key: uuid.v1(),
+                  data: [uuid.v1(), uuid.v1(), uuid.v1(), uuid.v1()],
+                ))),
+          ),
+        ),
+        SizedBox(
+          height: 24,
+        ),
+        ToolButton(
+          icon: gridEnabled ? Icons.grid_off : Icons.grid_on,
+          onPressed: () => setState(() => gridEnabled = !gridEnabled),
+        ),
+        ToolButton(
+          icon: enabled ? Icons.near_me_disabled : Icons.near_me,
+          onPressed: () => setState(() => enabled = !enabled),
+        ),
+      ],
     );
   }
 
-  onConnectionCreate(String start, String end) {
-    setState(() {
-      connections.add(Connection<String>(start, end));
-    });
+  Widget _itemBuilder(context, index) {
+    switch (handlers[index].type) {
+      case 2:
+        return Type2(
+          selected: selected == index,
+          title: 'Item: $index',
+          key: Key(handlers[index].key),
+          anchorData: handlers[index].data,
+        );
+      default:
+        return Type1(
+          selected: selected == index,
+          title: 'Item: $index',
+          key: Key(handlers[index].key),
+          anchorData: handlers[index].data,
+        );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text('Connections Demo')),
       body: SafeArea(
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(
-              width: 64,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  BoardSource<Handler>(
-                    source: ToolButton(
-                      title: 'Rect',
-                      onPressed: () {
-                        setState(() => children.add(Handler(
-                              key: uuid.v1(),
-                              anchors: [uuid.v1(), uuid.v1()],
-                            )));
-                      },
-                    ),
-                    feedback: Transform.scale(
-                      scale: scale,
-                      child: Item(title: 'Rect', anchorData: ['', '']),
-                    ),
-                    boardData: Handler(
-                      key: uuid.v1(),
-                      anchors: [uuid.v1(), uuid.v1()],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 48,
-                  ),
-                  ToolButton(
-                    title: enable ? 'Off' : 'On',
-                    onPressed: () {
-                      setState(() => enable = !enable);
-                    },
-                  )
-                ],
-              ),
-            ),
+            _createToolbar(context),
             Expanded(
-              child: Board<Handler, String>(
-                enable: enable,
-                itemBuilder: itemBuilder,
-                itemCount: children.length,
-                positions: positions,
-                height: _HomeScreenState.height,
-                width: _HomeScreenState.width,
-                onAddFromSource: onAddFromSource,
-                onPositionChange: (index, offset) => setState(() {
-                  positions[index] = offset;
-                }),
-                minScale: _HomeScreenState.minScale,
-                maxScale: _HomeScreenState.maxScale,
-                scale: scale,
-                onScaleChange: onScaleChange,
-                longPressMenu: false,
-                onSelectChange: (index) =>
-                    setState(() => selectedIndex = index),
+              child: Board<_Handler, String>(
+                width: 8000,
+                height: 8000,
+                itemBuilder: _itemBuilder,
+                itemCount: handlers.length,
+                positionBuilder: (index) => handlers[index].position,
+                onPositionChange: (index, offset) => setState(
+                  () => handlers[index] = handlers[index].update(offset),
+                ),
+                showGrid: gridEnabled,
+                enabled: enabled,
+                onAddFromSource: (handler, offset) => setState(
+                  () => handlers.add(handler.update(offset)),
+                ),
+                onSelectChange: (index) => setState(() => selected = index),
                 connections: connections,
-                onConnectionCreate: onConnectionCreate,
+                onConnectionCreate: (String start, String end) {
+                  if (start != end)
+                    setState(
+                      () => connections.add(Connection<String>(start, end)),
+                    );
+                },
               ),
             ),
           ],
@@ -156,21 +163,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class Handler {
+class _Handler {
+  final Offset? position;
   final String key;
-  final List<String> anchors;
+  final int type;
+  final List<String> data;
 
-  Handler({
-    @required this.key,
-    @required this.anchors,
+  _Handler({
+    required this.position,
+    required this.key,
+    required this.type,
+    required this.data,
   });
+
+  update(Offset offset) {
+    return _Handler(
+      type: type,
+      position: offset,
+      key: key,
+      data: data,
+    );
+  }
 
   @override
   String toString() => key;
-
-  @override
-  bool operator ==(Object other) => other is Handler && other.key == key;
-
-  @override
-  int get hashCode => key.hashCode;
 }

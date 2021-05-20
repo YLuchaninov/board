@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class Item extends StatelessWidget with PreferredSizeWidget{
+class Type1 extends StatelessWidget with PreferredSizeWidget {
   final String title;
   final bool selected;
 
-  const Item({
-    Key key,
-    @required this.title,
+  const Type1({
+    Key? key,
+    required this.title,
     this.selected = false,
   }) : super(key: key);
 
@@ -14,19 +14,19 @@ class Item extends StatelessWidget with PreferredSizeWidget{
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.lightBlueAccent,
         border: Border.all(
-          color: selected ? Colors.redAccent : Colors.transparent,
+          color: selected ? Colors.blue : Colors.transparent,
           width: 2,
         ),
+        color: Colors.purpleAccent,
       ),
-      width: 80,
-      height: 40,
       alignment: Alignment.center,
+      height: 50,
+      width: 100,
       child: Text(title),
     );
   }
 
   @override
-  Size get preferredSize => Size(80, 40);
+  Size get preferredSize => Size(100, 50);
 }

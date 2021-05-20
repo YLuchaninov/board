@@ -4,5 +4,5 @@ class ItemHandler {
   final int index;
   final GlobalKey globalKey;
 
-  ItemHandler({this.index, this.globalKey});
+  ItemHandler({required this.index, required this.globalKey});
 }

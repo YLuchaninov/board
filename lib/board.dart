@@ -1,6 +1,6 @@
 library board;
 
-export 'widgets/board.dart' show Board;
-export 'widgets/board_source.dart' show BoardSource;
-export 'widgets/connections/anchor.dart' show DrawAnchor;
-export 'widgets/connections/connection.dart' show Connection;
+export 'core/board.dart';
+export 'core/board_source.dart';
+export 'connections/connection.dart';
+export 'connections/anchor.dart';

@@ -10,183 +10,169 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const height = 8000.0;
-  static const width = 8000.0;
-  static const maxScale = 3.0;
-  static const minScale = 0.8;
-
+  static const double minScale = 0.5;
+  static const double maxScale = 3;
   final uuid = Uuid();
-  final children = <Handler>[];
-  final positions = <int, Offset>{};
+  final handlers = <_Handler>[];
+
+  bool gridEnabled = true;
+  bool enabled = true;
   double scale = 1;
-  int selectedIndex;
-  bool enable = true;
+  int? selected;
 
   @override
-  void dispose() {
-    children.clear();
-    positions.clear();
-    super.dispose();
+  void initState() {
+    handlers.addAll([
+      _Handler(position: Offset(50, 100), type: 1, key: uuid.v1()),
+      _Handler(position: Offset(150, 150), type: 2, key: uuid.v1()),
+      _Handler(position: Offset(50, 250), type: 1, key: uuid.v1()),
+    ]);
+    super.initState();
   }
 
-  onAddFromSource(handler, offset) {
-    setState(() {
-      children.add(handler);
-      positions[children.length - 1] = offset;
-    });
+  Widget _createToolbar(BuildContext context) {
+    return ToolBar(
+      children: [
+        BoardSource<_Handler>(
+          scale: scale,
+          boardData: _Handler(
+            position: null,
+            type: 1,
+            key: uuid.v1(),
+          ),
+          feedback: Type1(title: 'Item: '),
+          source: ToolButton(
+            icon: Icons.add_box,
+            onPressed: () => setState(() => handlers.add(_Handler(
+                  position: null,
+                  type: 1,
+                  key: uuid.v1(),
+                ))),
+          ),
+        ),
+        BoardSource<_Handler>(
+          scale: scale,
+          boardData: _Handler(
+            position: null,
+            type: 2,
+            key: uuid.v1(),
+          ),
+          feedback: Type2(title: 'Item: '),
+          source: ToolButton(
+            icon: Icons.add_circle_outline_rounded,
+            onPressed: () => setState(() => handlers.add(_Handler(
+                  position: null,
+                  type: 2,
+                  key: uuid.v1(),
+                ))),
+          ),
+        ),
+        ToolButton(
+          icon: Icons.receipt,
+          onPressed: () => setState(() => handlers.add(_Handler(
+                position: null,
+                type: 3,
+                key: uuid.v1(),
+              ))),
+        ),
+        SizedBox(
+          height: 24,
+        ),
+        ToolButton(
+          icon: gridEnabled ? Icons.grid_off : Icons.grid_on,
+          onPressed: () => setState(() => gridEnabled = !gridEnabled),
+        ),
+        ToolButton(
+          icon: enabled ? Icons.near_me_disabled : Icons.near_me,
+          onPressed: () => setState(() => enabled = !enabled),
+        ),
+        VSlider(
+          value: scale,
+          onChanged: (_scale) => setState(() => scale = _scale),
+          divisions: 10,
+          min: _HomeScreenState.minScale,
+          max: _HomeScreenState.maxScale,
+        ),
+      ],
+    );
   }
 
-  onScaleChange(val) {
-    setState(() {
-      if (val > _HomeScreenState.maxScale) val = _HomeScreenState.maxScale;
-      if (val < _HomeScreenState.minScale) val = _HomeScreenState.minScale;
-
-      scale = val;
-    });
-  }
-
-  Widget itemBuilder(context, index) {
-    switch (children[index].type) {
-      case 1:
-        return Type1(
-          title: 'Circle',
-          selected: selectedIndex == index,
-          key: Key(children[index].key), // required!
-        );
-      case 2:
+  Widget _itemBuilder(BuildContext context, int index) {
+    switch (handlers[index].type) {
+      case (2):
         return Type2(
-          title: 'Rect',
-          selected: selectedIndex == index,
-          key: Key(children[index].key), // required!
+          selected: selected == index,
+          title: 'Item: $index',
+          key: Key(handlers[index].key),
+        );
+      case (3):
+        return InputNode(
+          key: Key(handlers[index].key),
+          enabled: enabled,
+          selected: selected == index,
+          title: 'Item: $index',
+          text: (handlers[index].data ?? '') as String,
+          onTextChange: (value) => handlers[index].data = value,
         );
       default:
-        return InputNode(
-          selected: selectedIndex == index,
-          key: Key(children[index].key), // required!
-          text: children[index].data as String ?? '',
-          onTextChange: (text) {
-            children[index].data = text;
-          },
+        return Type1(
+          selected: selected == index,
+          title: 'Item: $index',
+          key: Key(handlers[index].key),
         );
     }
   }
 
-  deleteItem(int index) {
-    if (index == null) return;
-
-    setState(() {
-      for (int i = index; i < children.length - 1; i++) {
-        positions[i] = positions[i + 1];
-      }
-      positions.remove(children.length - 1);
-      children.removeAt(index);
-      selectedIndex = null;
-    });
+  Widget _menuBuilder(context, index, close) {
+    return MenuWidget(
+      onCopy: () => setState(() {
+        close();
+        handlers.add(
+          _Handler(
+            position: null,
+            type: handlers[index].type,
+            key: uuid.v1(),
+            data: handlers[index].data,
+          ),
+        );
+      }),
+      onDelete: () => setState(() {
+        close();
+        handlers.removeAt(index);
+      }),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text('Simple Board Demo')),
       body: SafeArea(
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(
-              width: 64,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  BoardSource<Handler>(
-                    source: ToolButton(
-                      title: 'Circle',
-                      onPressed: () {
-                        setState(() => children.add(Handler(
-                              type: 1,
-                              key: uuid.v1(),
-                            )));
-                      },
-                    ),
-                    feedback: Transform.scale(
-                      scale: scale,
-                      child: Type1(title: 'Circle'),
-                    ),
-                    boardData: Handler(
-                      type: 1,
-                      key: uuid.v1(),
-                    ),
-                  ),
-                  BoardSource<Handler>(
-                    source: ToolButton(
-                      title: 'Rect',
-                      onPressed: () {
-                        setState(() => children.add(Handler(
-                              type: 2,
-                              key: uuid.v1(),
-                            )));
-                      },
-                    ),
-                    feedback: Transform.scale(
-                      scale: scale,
-                      child: Type2(title: 'Rect'),
-                    ),
-                    boardData: Handler(
-                      type: 2,
-                      key: uuid.v1(),
-                    ),
-                  ),
-                  ToolButton(
-                    title: 'Text',
-                    onPressed: () {
-                      setState(() => children.add(Handler(
-                            type: 3,
-                            key: uuid.v1(),
-                          )));
-                    },
-                  ),
-                  SizedBox(
-                    height: 48,
-                  ),
-                  ToolButton(
-                    title: 'Delete',
-                    onPressed: () => deleteItem(selectedIndex),
-                  ),
-                  SizedBox(
-                    height: 48,
-                  ),
-                  ToolButton(
-                    title: enable ? 'Off' : 'On',
-                    onPressed: () => setState(() => enable = !enable),
-                  ),
-                ],
-              ),
-            ),
+            _createToolbar(context),
             Expanded(
-              child: Board<Handler, dynamic>(
-                enable: enable,
-                itemBuilder: itemBuilder,
-                itemCount: children.length,
-                positions: positions,
-                height: _HomeScreenState.height,
-                width: _HomeScreenState.width,
-                onAddFromSource: onAddFromSource,
-                onPositionChange: (index, offset) => setState(() {
-                  positions[index] = offset;
-                }),
+              child: Board<_Handler, dynamic>(
+                width: 8000,
+                height: 8000,
+                itemBuilder: _itemBuilder,
+                itemCount: handlers.length,
+                positionBuilder: (index) => handlers[index].position,
+                onPositionChange: (index, offset) => setState(
+                  () => handlers[index] = handlers[index].update(offset),
+                ),
+                showGrid: gridEnabled,
+                enabled: enabled,
+                scale: scale,
                 minScale: _HomeScreenState.minScale,
                 maxScale: _HomeScreenState.maxScale,
-                scale: scale,
-                onScaleChange: onScaleChange,
-                longPressMenu: true,
-                menuBuilder: (context, index, close) => MenuWidget(
-                  onDelete: () => deleteItem(index),
-                  onCopy: () {
-                    close();
-                    setState(() {
-                      children.add(children[index].clone(uuid.v1()));
-                    });
-                  },
+                onScaleChange: (_scale) => setState(() => scale = _scale),
+                onAddFromSource: (handler, offset) => setState(
+                  () => handlers.add(handler.update(offset)),
                 ),
-                onSelectChange: (index) => setState(() => selectedIndex = index),
+                onSelectChange: (index) => setState(() => selected = index),
+                longPressMenu: true,
+                menuBuilder: _menuBuilder,
               ),
             ),
           ],
@@ -196,22 +182,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class Handler {
+class _Handler {
+  final Offset? position;
   final int type;
   final String key;
   dynamic data;
 
-  Handler({
-    @required this.type,
-    @required this.key,
+  _Handler({
+    required this.position,
+    required this.type,
+    required this.key,
     this.data,
   });
 
-  Handler clone(String key) {
-    return Handler(
+  update(Offset offset) {
+    return _Handler(
+      position: offset,
       type: type,
       key: key,
       data: data,
     );
   }
+
+  @override
+  String toString() => key;
 }

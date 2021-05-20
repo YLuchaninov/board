@@ -12,5 +12,6 @@ import 'package:stick_to_grid/main.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+
   });
 }

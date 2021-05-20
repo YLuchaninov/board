@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class GridPainter extends CustomPainter {
-  final Color color;
+  final Color? color;
   final double cellWidth;
   final double cellHeight;
   final double strokeWidth;
@@ -9,19 +9,21 @@ class GridPainter extends CustomPainter {
 
   GridPainter({
     this.color,
-    this.cellWidth,
-    this.cellHeight,
-    this.dotLength,
-    this.strokeWidth,
+    required this.cellWidth,
+    required this.cellHeight,
+    required this.dotLength,
+    required this.strokeWidth,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
+    final _color = color ?? Colors.black;
+
     // draw vertical lines
     final vPaint = Paint()
-      ..color = color
+      ..color = _color
       ..shader = LinearGradient(
-        colors: [color, Colors.transparent],
+        colors: [_color, Colors.transparent],
         stops: [0.5, 0.5],
         tileMode: TileMode.repeated,
         begin: Alignment.topCenter,
@@ -37,9 +39,9 @@ class GridPainter extends CustomPainter {
 
     // draw horizontal lines
     final hPaint = Paint()
-      ..color = color
+      ..color = _color
       ..shader = LinearGradient(
-        colors: [color, Colors.transparent],
+        colors: [_color, Colors.transparent],
         stops: [0.5, 0.5],
         tileMode: TileMode.repeated,
         begin: Alignment.centerLeft,

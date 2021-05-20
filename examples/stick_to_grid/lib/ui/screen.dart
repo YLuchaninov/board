@@ -11,93 +11,80 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const height = 8000.0;
-  static const width = 8000.0;
-  static const maxScale = 3.0;
-  static const minScale = 0.8;
-
   final uuid = Uuid();
-  final children = <String>[];
-  final positions = <int, Offset>{};
-  double scale = 1;
-  int selectedIndex;
+  final handlers = <_Handler>[];
+
+  bool gridEnabled = true;
+  bool enabled = true;
 
   @override
-  void dispose() {
-    children.clear();
-    positions.clear();
-    super.dispose();
+  void initState() {
+    handlers.addAll([
+      _Handler(position: Offset(50, 100), key: uuid.v1()),
+      _Handler(position: Offset(150, 150), key: uuid.v1()),
+      _Handler(position: Offset(50, 250), key: uuid.v1()),
+    ]);
+    super.initState();
   }
 
-  onAddFromSource(uid, offset) {
-    setState(() {
-      children.add(uid);
-      positions[children.length - 1] = offset;
-    });
-  }
-
-  onScaleChange(val) {
-    setState(() {
-      if (val > _HomeScreenState.maxScale) val = _HomeScreenState.maxScale;
-      if (val < _HomeScreenState.minScale) val = _HomeScreenState.minScale;
-
-      scale = val;
-    });
-  }
-
-  Widget itemBuilder(context, index) {
-    return Item(
-      title: 'Rect',
-      selected: selectedIndex == index,
-      key: Key(children[index]),
+  Widget _createToolbar(BuildContext context) {
+    return ToolBar(
+      children: [
+        BoardSource<_Handler>(
+          boardData: _Handler(
+            position: null,
+            key: uuid.v1(),
+          ),
+          feedback: Type1(title: 'Item: '),
+          source: ToolButton(
+            icon: Icons.add_box,
+            onPressed: () => setState(() => handlers.add(_Handler(
+                  position: null,
+                  key: uuid.v1(),
+                ))),
+          ),
+        ),
+        SizedBox(
+          height: 24,
+        ),
+        ToolButton(
+          icon: gridEnabled ? Icons.grid_off : Icons.grid_on,
+          onPressed: () => setState(() => gridEnabled = !gridEnabled),
+        ),
+        ToolButton(
+          icon: enabled ? Icons.near_me_disabled : Icons.near_me,
+          onPressed: () => setState(() => enabled = !enabled),
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text('Stick to Grid Demo')),
       body: SafeArea(
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(
-              width: 64,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  BoardSource<String>(
-                    source: ToolButton(
-                      title: 'Rect',
-                      onPressed: () {
-                        setState(() => children.add(uuid.v1()));
-                      },
-                    ),
-                    feedback: Transform.scale(
-                      scale: scale,
-                      child: Item(title: 'Rect'),
-                    ),
-                    boardData: uuid.v1(),
-                  ),
-                ],
-              ),
-            ),
+            _createToolbar(context),
             Expanded(
-              child: Board<String, dynamic>(
-                itemBuilder: itemBuilder,
-                itemCount: children.length,
-                positions: positions,
-                height: _HomeScreenState.height,
-                width: _HomeScreenState.width,
-                onAddFromSource: onAddFromSource,
-                onPositionChange: (index, offset) =>
-                    setState(() => positions[index] = offset),
-                minScale: _HomeScreenState.minScale,
-                maxScale: _HomeScreenState.maxScale,
-                scale: scale,
-                onScaleChange: onScaleChange,
-                longPressMenu: false,
-                onSelectChange: (index) =>
-                    setState(() => selectedIndex = index),
+              child: Board<_Handler, dynamic>(
+                width: 8000,
+                height: 8000,
+                itemBuilder: (context, index) => Type1(
+                  title: 'Item: $index',
+                  key: Key(handlers[index].key),
+                ),
+                itemCount: handlers.length,
+                positionBuilder: (index) => handlers[index].position,
+                onPositionChange: (index, offset) => setState(
+                  () => handlers[index] = handlers[index].update(offset),
+                ),
+                showGrid: gridEnabled,
+                enabled: enabled,
+                onAddFromSource: (handler, offset) => setState(
+                  () => handlers.add(handler.update(offset)),
+                ),
                 anchorSetter: (offset) =>
                     Offset((offset.dx / 100).round() * 100.0, offset.dy),
                 gridPainter: Painter(),
@@ -108,4 +95,24 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+class _Handler {
+  final Offset? position;
+  final String key;
+
+  _Handler({
+    required this.position,
+    required this.key,
+  });
+
+  update(Offset offset) {
+    return _Handler(
+      position: offset,
+      key: key,
+    );
+  }
+
+  @override
+  String toString() => key;
 }

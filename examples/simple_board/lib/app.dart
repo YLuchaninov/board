@@ -6,8 +6,9 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Simply Board',
+      title: 'Simple Board Demo',
       home: HomeScreen(),
     );
   }
 }
+
