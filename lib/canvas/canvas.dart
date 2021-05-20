@@ -6,8 +6,6 @@ import 'grid_painter.dart';
 import 'handler.dart';
 import '../core/types.dart';
 
-const _AnimationDuration = 120;
-
 class BoardCanvas<H extends Object> extends StatefulWidget {
   final bool enabled;
   final IndexedWidgetBuilder itemBuilder;
@@ -66,33 +64,15 @@ class BoardCanvas<H extends Object> extends StatefulWidget {
   _BoardCanvasState<H> createState() => _BoardCanvasState<H>();
 }
 
-class _BoardCanvasState<H extends Object> extends State<BoardCanvas<H>>
-    with SingleTickerProviderStateMixin {
+class _BoardCanvasState<H extends Object> extends State<BoardCanvas<H>> {
   // todo separate to several abstractions for refactoring
-  late AnimationController animationController;
-  late Animation<Offset>? animation;
   int? selected;
   bool menuOpened = false;
-  ItemHandler? animated;
   var _handlers = <Key?, ItemHandler>{};
-
-
-  @override
-  initState() {
-    animationController = AnimationController(
-      value: 0,
-      duration: const Duration(milliseconds: _AnimationDuration),
-      vsync: this,
-    );
-    animationController.addListener(_onAnimation);
-    super.initState();
-  }
 
   @override
   void dispose() {
-    animationController.removeListener(_onAnimation);
     _handlers.clear();
-    animationController.dispose();
     super.dispose();
   }
 
@@ -221,19 +201,16 @@ class _BoardCanvasState<H extends Object> extends State<BoardCanvas<H>>
         offset = _placeWidgetToCenter(i, child as PreferredSizeWidget);
       }
 
-      if (animated != null && handler.globalKey == animated!.globalKey) {
-        offset = animation!.value;
-      }
-
       result.add(BoardItem(
         key: handler.globalKey,
         enabled: widget.enabled && !widget.drawSate.value,
         position: offset,
-        onChange: _createDropExistItemCallback(handler),
-        onDragging: (Offset offset) => widget.onDragging(i, offset),
+        onChange: (_offset) => widget.onPositionChange?.call(i, _offset),
+        onDragging: (_offset) => widget.onDragging(i, _offset),
         child: child,
         onTap: _createOnItemTap(i),
         onLongPress: _createOnItemLongPress(i),
+        anchorSetter: widget.anchorSetter,
       ));
       keys.add(child.key);
     }
@@ -280,13 +257,6 @@ class _BoardCanvasState<H extends Object> extends State<BoardCanvas<H>>
     );
   }
 
-  _createDropExistItemCallback(ItemHandler handler) {
-    return (Offset offset) {
-      widget.onPositionChange?.call(handler.index, offset);
-      _stickToGrid(handler, offset);
-    };
-  }
-
   _dropNewItem(H sourceData, Offset offset) {
     final renderObject = context.findRenderObject() as RenderBox;
     final _position = renderObject.globalToLocal(offset);
@@ -324,27 +294,6 @@ class _BoardCanvasState<H extends Object> extends State<BoardCanvas<H>>
     WidgetsBinding.instance!.addPostFrameCallback(
       (_) => widget.onPositionChange?.call(index, _position),
     );
-    _stickToGrid(_handlers[child.key], _position);
-
     return _position;
   }
-
-  _stickToGrid(ItemHandler? handler, Offset from) {
-    if (widget.anchorSetter is AnchorSetter) {
-      final to = widget.anchorSetter?.call(from);
-      animation =
-          Tween<Offset>(begin: from, end: to).animate(animationController);
-
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
-        animated = handler;
-        animationController.forward(from: 0).whenComplete(() {
-          animated = null;
-          animation = null;
-          widget.onPositionChange?.call(handler!.index, to!);
-        });
-      });
-    }
-  }
-
-  _onAnimation() => setState(() {});
 }

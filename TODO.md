@@ -13,8 +13,8 @@
 
 ## FIX
 
-* stick to grid in dropping case
 * first connections paint after loading
+* first dragging case
 * small jitter when dragging a item(dragging anchor) (possible solution to use PreferredSizeWidget instead calculation of anchor size, or check item pointer solution)
 * board drop point when scale of feedback not equivalent to the 1
 * change logic of switching between selection by tap & longPress
