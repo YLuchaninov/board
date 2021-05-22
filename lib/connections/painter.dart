@@ -41,11 +41,10 @@ class ConnectionPainter<T> extends StatefulWidget {
 }
 
 class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
-  final markerPositions = <int, Offset>{}; // todo change
   final anchors = <T, GlobalKey>{};
   Offset? start = Offset.zero;
   Offset? end = Offset.zero;
-  AnchorData? startData;
+  T? startData;
   bool requested = false;
 
   _requestToUpdate() {
@@ -73,29 +72,18 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
   @override
   void dispose() {
     widget.dragNotifier.removeListener(_onDragging);
-    markerPositions.clear();
     super.dispose();
   }
 
-  _onDragging() {
-    setState(() {
-      final value = widget.dragNotifier.value;
-
-      if (value.offset != null) {
-        markerPositions[value.index] = value.offset!;
-      } else {
-        markerPositions.remove(value.index);
-      }
-    });
-  }
+  _onDragging() => setState(() {});
 
   Offset _calculateAnchor(GlobalKey? key, RenderBox root) {
     final anchor = key?.currentContext?.findRenderObject() as RenderBox;
-    final offset = anchor.localToGlobal(Offset.zero);
-    final size = anchor.size;
+    final local =
+        ((key?.currentWidget as MetaData).metaData as AnchorData).anchorOffset;
+    final global = anchor.localToGlobal(local);
 
-    return root.globalToLocal(
-        offset + Offset(size.width / 2, size.height / 2) * widget.scale);
+    return root.globalToLocal(global);
   }
 
   _onPointerDown(T data) {
@@ -105,7 +93,7 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
 
     final box = context.findRenderObject();
     end = start = _calculateAnchor(anchors[data], box as RenderBox);
-    startData = AnchorData(data);
+    startData = data;
 
     setState(() {});
   }
@@ -135,7 +123,7 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
     if (!widget.enabled) return;
 
     widget.drawSate.value = false;
-    widget.onConnectionCreate?.call(startData!.data, data!.data);
+    widget.onConnectionCreate?.call(startData!, data!.data);
 
     setState(() {
       end = start = Offset.zero;
@@ -206,14 +194,6 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final positions = List<Offset>.generate(
-      widget.itemCount,
-      (index) =>
-          markerPositions[index] ??
-          widget.positionBuilder(index) ??
-          Offset.zero,
-    );
-
     final connections = _calculateConnections();
 
     return CustomPaint(
@@ -222,7 +202,6 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
         start: start,
         end: end,
         connections: connections,
-        positions: positions,
       ),
       child: TapInterceptor<T>(
         child: Listener(

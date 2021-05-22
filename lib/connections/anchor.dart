@@ -6,11 +6,13 @@ import 'anchor_handler.dart';
 class DrawAnchor<T> extends StatefulWidget {
   final Widget child;
   final T data;
+  final Offset anchorOffset;
 
   const DrawAnchor({
     Key? key,
     required this.child,
     required this.data,
+    required this.anchorOffset,
   }) : super(key: key);
 
   @override
@@ -41,7 +43,10 @@ class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final anchorData = AnchorData(widget.data);
+    final anchorData = AnchorData(
+      data: widget.data,
+      anchorOffset: widget.anchorOffset,
+    );
     final interceptor = ConnectionPainter.of<T>(context);
 
     return MetaData(

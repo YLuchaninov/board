@@ -3,14 +3,12 @@ import 'package:flutter/material.dart';
 import '../connections/connection.dart';
 
 class PositionPainter extends CustomPainter {
-  final List<Offset> positions;
   final Offset? start;
   final Offset? end;
   final Iterable<AnchorConnection> connections;
   final bool enable;
 
   PositionPainter({
-    required this.positions,
     required this.connections,
     required this.start,
     required this.end,
@@ -33,16 +31,6 @@ class PositionPainter extends CustomPainter {
 
     if (!enable) return;
     canvas.drawLine(start ?? Offset.zero, end ?? Offset.zero, paint);
-
-    // todo remove positions drawing
-    final _paint = Paint()
-      ..color = Colors.lightBlueAccent
-      ..strokeWidth = 2;
-
-    positions.forEach((position) {
-      canvas.drawLine(position, position + Offset(30, 0), _paint);
-      canvas.drawLine(position, position + Offset(0, 30), _paint);
-    });
   }
 
   @override

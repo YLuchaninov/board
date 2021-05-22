@@ -18,7 +18,6 @@
 * board drop point when scale of feedback not equivalent to the 1
 * change logic of switching between selection by tap & longPress
 * connections overlapped items & menus
-* check connections with stick to grid functionality
 
 ## CHECK
 
