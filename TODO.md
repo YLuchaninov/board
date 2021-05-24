@@ -13,6 +13,7 @@
 
 ## FIX
 
+* redraw with board scrolling
 * remove connections
 * change logic of switching between selection by tap & longPress
 * board drop point when scale of feedback not equivalent to the 1

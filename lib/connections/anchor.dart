@@ -29,7 +29,7 @@ class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
     if (requestToInit) {
       requestToInit = false;
       final item = BoardItem.of<T>(context);
-      item!.registerGetter(widget.data, offsetGetter);
+      item?.registerGetter(widget.data, offsetGetter);
     }
 
     super.didChangeDependencies();
@@ -40,7 +40,7 @@ class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
   @override
   void deactivate() {
     final item = BoardItem.of<T>(context);
-    item!.unregisterGetter(widget.data);
+    item?.unregisterGetter(widget.data);
     super.deactivate();
   }
 
