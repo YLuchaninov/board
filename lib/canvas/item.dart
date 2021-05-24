@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 
 import '../core/types.dart';
+import '../connections/item_interceptor.dart';
 
 const _AnimationDuration = 100;
 
-class BoardItem extends StatefulWidget {
+class BoardItem<T> extends StatefulWidget {
+  static ItemInterceptor<T>? of<T>(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<ItemInterceptor<T>>();
+
   final bool enabled;
   final Widget child;
   final Offset position;
   final ValueChanged<Offset> onChange;
-  final ValueChanged<Offset> onDragging;
+  final OnDragging<T> onDragging;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final AnchorSetter? anchorSetter;
@@ -27,15 +31,33 @@ class BoardItem extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  BoardItemState createState() => BoardItemState();
+  BoardItemState<T> createState() => BoardItemState<T>();
 }
 
-class BoardItemState extends State<BoardItem>
+class BoardItemState<T> extends State<BoardItem<T>>
     with SingleTickerProviderStateMixin {
   late AnimationController animationController;
   Animation<Offset>? animation;
   Offset _position = Offset.zero;
   Offset panOffset = Offset.zero;
+  final anchors = <T, GetAnchor>{};
+  bool requested = false;
+
+  _requestToUpdate() {
+    if (!requested) {
+      requested = true;
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
+        final box = context.findRenderObject() as RenderBox;
+        final _anchors = <T, Offset>{};
+        anchors.forEach((key, value){
+          _anchors[key] = box.localToGlobal(anchors[key]!());
+        });
+        widget.onDragging(_position, _anchors);
+
+        setState(() => requested = false);
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -51,8 +73,8 @@ class BoardItemState extends State<BoardItem>
   }
 
   @override
-  void didUpdateWidget(covariant BoardItem oldWidget) {
-    if(_position != widget.position) {
+  void didUpdateWidget(covariant BoardItem<T> oldWidget) {
+    if (_position != widget.position) {
       _position = widget.position;
       _stickToGrid(_position);
     }
@@ -61,6 +83,7 @@ class BoardItemState extends State<BoardItem>
 
   @override
   void dispose() {
+    anchors.clear();
     animationController.removeListener(_onAnimation);
     animationController.dispose();
     super.dispose();
@@ -68,7 +91,7 @@ class BoardItemState extends State<BoardItem>
 
   _onAnimation() => setState(() {
         _position = animation!.value;
-        widget.onDragging(_position);
+        _requestToUpdate();
       });
 
   _onPanDownBuilder() {
@@ -96,9 +119,19 @@ class BoardItemState extends State<BoardItem>
       panOffset = event.localPosition;
       setState(() {
         _position += event.delta;
-        widget.onDragging(_position);
+        _requestToUpdate();
       });
     };
+  }
+
+  _registerGetter(T data, GetAnchor getter) {
+    anchors[data] = getter;
+    _requestToUpdate();
+  }
+
+  _unregisterGetter(T data) {
+    anchors.remove(data);
+    _requestToUpdate();
   }
 
   @override
@@ -112,7 +145,11 @@ class BoardItemState extends State<BoardItem>
         onPanDown: _onPanDownBuilder(),
         onPanUpdate: _onPanUpdateBuilder(),
         onPanEnd: _onPanEndBuilder(),
-        child: widget.child,
+        child: ItemInterceptor<T>(
+          unregisterGetter: _unregisterGetter,
+          registerGetter: _registerGetter,
+          child: widget.child,
+        ),
       ),
     );
   }
@@ -120,7 +157,7 @@ class BoardItemState extends State<BoardItem>
   _stickToGrid(Offset from) {
     if (widget.anchorSetter is AnchorSetter) {
       final to = widget.anchorSetter?.call(from);
-      if(_position != to) {
+      if (_position != to) {
         animation =
             Tween<Offset>(begin: from, end: to).animate(animationController);
         WidgetsBinding.instance!.addPostFrameCallback((_) {

@@ -49,7 +49,7 @@ class Type1 extends StatelessWidget with PreferredSizeWidget {
             top: 15,
             height: 20,
             child: DrawAnchor<String>(
-              anchorOffset: Offset(10, 10),
+              anchorOffset: Offset(10, 25),
               data: anchorData[0],
               child: Container(
                 decoration: BoxDecoration(
@@ -65,7 +65,7 @@ class Type1 extends StatelessWidget with PreferredSizeWidget {
             top: 15,
             height: 20,
             child: DrawAnchor<String>(
-              anchorOffset: Offset(10, 10),
+              anchorOffset: Offset(110, 25),
               data: anchorData[1],
               child: Container(
                 decoration: BoxDecoration(

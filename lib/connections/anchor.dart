@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'painter.dart';
 import 'anchor_handler.dart';
+import '../canvas/item.dart';
 
 class DrawAnchor<T> extends StatefulWidget {
   final Widget child;
@@ -27,17 +28,19 @@ class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
   void didChangeDependencies() {
     if (requestToInit) {
       requestToInit = false;
-      final interceptor = ConnectionPainter.of<T>(context);
-      interceptor?.register(widget.data, key);
+      final item = BoardItem.of<T>(context);
+      item!.registerGetter(widget.data, offsetGetter);
     }
 
     super.didChangeDependencies();
   }
 
+  Offset offsetGetter() => widget.anchorOffset;
+
   @override
   void deactivate() {
-    final interceptor = ConnectionPainter.of<T>(context);
-    interceptor?.unregister(widget.data);
+    final item = BoardItem.of<T>(context);
+    item!.unregisterGetter(widget.data);
     super.deactivate();
   }
 

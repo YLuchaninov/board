@@ -70,10 +70,11 @@ class Board<H extends Object, T> extends StatefulWidget {
 
 class _BoardState<H extends Object, T> extends State<Board<H, T>> {
   final ValueNotifier<bool> drawSate = ValueNotifier<bool>(false);
-  final ValueNotifier<DragPosition> dragNotifier =
-      ValueNotifier<DragPosition>(DragPosition(
+  final ValueNotifier<DragPosition<T>> dragNotifier =
+      ValueNotifier<DragPosition<T>>(DragPosition<T>(
     index: -1,
     offset: Offset.zero,
+    anchors: {},
   ));
   final controller = TransformationController();
   final key = GlobalKey();
@@ -148,7 +149,7 @@ class _BoardState<H extends Object, T> extends State<Board<H, T>> {
           onConnectionCreate: widget.onConnectionCreate,
           scale: scale,
           drawSate: drawSate,
-          child: BoardCanvas<H>(
+          child: BoardCanvas<H, T>(
             enabled: widget.enabled,
             viewPortKey: key,
             width: widget.width,
@@ -156,9 +157,11 @@ class _BoardState<H extends Object, T> extends State<Board<H, T>> {
             itemCount: widget.itemCount,
             itemBuilder: widget.itemBuilder,
             positionBuilder: widget.positionBuilder,
-            onDragging: (index, offset) => dragNotifier.value = DragPosition(
+            onDragging: (index, offset, anchors) =>
+                dragNotifier.value = DragPosition(
               index: index,
               offset: offset,
+              anchors: anchors,
             ),
             onPositionChange: widget.onPositionChange,
             showGrid: widget.showGrid,

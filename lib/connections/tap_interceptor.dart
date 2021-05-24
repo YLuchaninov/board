@@ -6,8 +6,6 @@ class TapInterceptor<T> extends InheritedWidget {
   final ValueChanged<T> onPointerDown;
   final ValueChanged<Offset> onPointerUp;
   final VoidCallback onPointerCancel;
-  final AnchorRegister<T> register;
-  final ValueChanged<T> unregister;
 
   TapInterceptor({
     Key? key,
@@ -15,8 +13,6 @@ class TapInterceptor<T> extends InheritedWidget {
     required this.onPointerUp,
     required this.onPointerDown,
     required this.onPointerCancel,
-    required this.register,
-    required this.unregister,
   }) : super(key: key, child: child);
 
   @override

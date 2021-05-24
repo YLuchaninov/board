@@ -10,5 +10,9 @@ typedef Widget IndexedMenuBuilder(
     );
 typedef Offset AnchorSetter(Offset position);
 typedef void AnchorRegister<T>(T data, GlobalKey key);
-typedef OnConnectionCreate<T>(T startData, T endData);
-
+typedef void OnConnectionCreate<T>(T startData, T endData);
+typedef Offset GetAnchor();
+typedef void RegisterAnchorGetter<T>(T data, GetAnchor getter);
+typedef void UnregisterAnchorGetter<T>(T data);
+typedef void OnDragging<T>(Offset offset, Map<T, Offset> anchors);
+typedef void OnIndexedDragging<T>(int index, Offset position, Map<T, Offset> anchors);

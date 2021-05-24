@@ -18,7 +18,7 @@ class ConnectionPainter<T> extends StatefulWidget {
   final double scale;
   final int itemCount;
   final IndexedPositionBuilder positionBuilder;
-  final ValueNotifier<DragPosition> dragNotifier;
+  final ValueNotifier<DragPosition<T>> dragNotifier;
   final Widget child;
   final List<Connection<T>>? connections;
   final OnConnectionCreate<T>? onConnectionCreate;
@@ -41,20 +41,10 @@ class ConnectionPainter<T> extends StatefulWidget {
 }
 
 class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
-  final anchors = <T, GlobalKey>{};
+  final anchors = <T, Offset>{};
   Offset? start = Offset.zero;
   Offset? end = Offset.zero;
   T? startData;
-  bool requested = false;
-
-  _requestToUpdate() {
-    if (!requested) {
-      requested = true;
-      WidgetsBinding.instance?.addPostFrameCallback(
-        (_) => setState(() => requested = false),
-      );
-    }
-  }
 
   @override
   initState() {
@@ -75,7 +65,11 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
     super.dispose();
   }
 
-  _onDragging() => setState(() {});
+  _onDragging() => setState(
+        () => anchors.addAll(widget.dragNotifier.value.anchors),
+      );
+
+  // todo remove anchor
 
   Offset _calculateAnchor(GlobalKey? key, RenderBox root) {
     final anchor = key?.currentContext?.findRenderObject() as RenderBox;
@@ -91,8 +85,8 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
 
     widget.drawSate.value = true;
 
-    final box = context.findRenderObject();
-    end = start = _calculateAnchor(anchors[data], box as RenderBox);
+    final box = context.findRenderObject() as RenderBox;
+    end = start = box.globalToLocal(anchors[data]!);
     startData = data;
 
     setState(() {});
@@ -164,16 +158,6 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
     }
   }
 
-  _register(T data, GlobalKey key) {
-    anchors[data] = key;
-    _requestToUpdate();
-  }
-
-  _unregister(T data) {
-    anchors.remove(data);
-    _requestToUpdate();
-  }
-
   List<AnchorConnection> _calculateConnections() {
     final connections = <AnchorConnection>[];
     final box = context.findRenderObject();
@@ -182,8 +166,8 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
         if (anchors[connection.start] != null &&
             anchors[connection.end] != null) {
           connections.add(AnchorConnection(
-            start: _calculateAnchor(anchors[connection.start], box),
-            end: _calculateAnchor(anchors[connection.end], box),
+            start: box.globalToLocal(anchors[connection.start]!),
+            end: box.globalToLocal(anchors[connection.end]!),
           ));
         }
       });
@@ -211,8 +195,6 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
         onPointerDown: _onPointerDown,
         onPointerUp: _extractAnchorData,
         onPointerCancel: _onPointerCancel,
-        register: _register,
-        unregister: _unregister,
       ),
     );
   }

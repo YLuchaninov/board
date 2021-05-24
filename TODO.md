@@ -13,13 +13,13 @@
 
 ## FIX
 
-* first dragging case
-* small jitter when dragging a item(dragging anchor) (check item pointer solution)
-* board drop point when scale of feedback not equivalent to the 1
+* remove connections
 * change logic of switching between selection by tap & longPress
+* board drop point when scale of feedback not equivalent to the 1
 * connections overlapped items & menus
 
 ## CHECK
 
 * macOS browser dragging between different dpi screens(flutter issue)
 * null safety solutions in whole project(refactoring)
+* megaboard

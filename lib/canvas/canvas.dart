@@ -6,12 +6,12 @@ import 'grid_painter.dart';
 import 'handler.dart';
 import '../core/types.dart';
 
-class BoardCanvas<H extends Object> extends StatefulWidget {
+class BoardCanvas<H extends Object, T> extends StatefulWidget {
   final bool enabled;
   final IndexedWidgetBuilder itemBuilder;
   final int itemCount;
   final IndexedPositionBuilder positionBuilder;
-  final OnPositionChange onDragging;
+  final OnIndexedDragging<T> onDragging;
   final OnPositionChange? onPositionChange;
   final double width;
   final double height;
@@ -61,10 +61,10 @@ class BoardCanvas<H extends Object> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _BoardCanvasState<H> createState() => _BoardCanvasState<H>();
+  _BoardCanvasState<H, T> createState() => _BoardCanvasState<H, T>();
 }
 
-class _BoardCanvasState<H extends Object> extends State<BoardCanvas<H>> {
+class _BoardCanvasState<H extends Object, T> extends State<BoardCanvas<H, T>> {
   // todo separate to several abstractions for refactoring
   int? selected;
   bool menuOpened = false;
@@ -201,12 +201,12 @@ class _BoardCanvasState<H extends Object> extends State<BoardCanvas<H>> {
         offset = _placeWidgetToCenter(i, child as PreferredSizeWidget);
       }
 
-      result.add(BoardItem(
+      result.add(BoardItem<T>(
         key: handler.globalKey,
         enabled: widget.enabled && !widget.drawSate.value,
         position: offset,
         onChange: (_offset) => widget.onPositionChange?.call(i, _offset),
-        onDragging: (_offset) => widget.onDragging(i, _offset),
+        onDragging: (_offset, _anchors) => widget.onDragging(i, _offset, _anchors),
         child: child,
         onTap: _createOnItemTap(i),
         onLongPress: _createOnItemLongPress(i),
