@@ -41,7 +41,7 @@ class ConnectionPainter<T> extends StatefulWidget {
 }
 
 class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
-  final anchors = <T, Offset>{};
+  final anchors = <T, Offset>{}; // Offset is local position
   Offset? start = Offset.zero;
   Offset? end = Offset.zero;
   T? startData;
@@ -65,28 +65,18 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
     super.dispose();
   }
 
-  _onDragging() => setState(
-        () => anchors.addAll(widget.dragNotifier.value.anchors),
-      );
-
-  // todo remove anchor
-
-  Offset _calculateAnchor(GlobalKey? key, RenderBox root) {
-    final anchor = key?.currentContext?.findRenderObject() as RenderBox;
-    final local =
-        ((key?.currentWidget as MetaData).metaData as AnchorData).anchorOffset;
-    final global = anchor.localToGlobal(local);
-
-    return root.globalToLocal(global);
-  }
+  _onDragging() => setState(() {
+        final box = context.findRenderObject() as RenderBox;
+        widget.dragNotifier.value.anchors.forEach((key, value) {
+          anchors[key] = box.globalToLocal(value);
+        });
+      });
 
   _onPointerDown(T data) {
     if (!widget.enabled) return;
 
     widget.drawSate.value = true;
-
-    final box = context.findRenderObject() as RenderBox;
-    end = start = box.globalToLocal(anchors[data]!);
+    end = start = anchors[data]!;
     startData = data;
 
     setState(() {});
@@ -160,18 +150,13 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
 
   List<AnchorConnection> _calculateConnections() {
     final connections = <AnchorConnection>[];
-    final box = context.findRenderObject();
-    if (box is RenderBox) {
-      widget.connections?.forEach((connection) {
-        if (anchors[connection.start] != null &&
-            anchors[connection.end] != null) {
-          connections.add(AnchorConnection(
-            start: box.globalToLocal(anchors[connection.start]!),
-            end: box.globalToLocal(anchors[connection.end]!),
-          ));
-        }
-      });
-    }
+    widget.connections?.forEach((connection) {
+      if (anchors[connection.start] != null && anchors[connection.end] != null)
+        connections.add(AnchorConnection(
+          start: anchors[connection.start]!,
+          end: anchors[connection.end]!,
+        ));
+    });
 
     return connections;
   }
