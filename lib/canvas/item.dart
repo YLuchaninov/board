@@ -101,7 +101,6 @@ class BoardItemState<T> extends State<BoardItem<T>>
         animation = null;
         animationController.stop();
       }
-      panOffset = event.localPosition;
     };
   }
 
@@ -116,7 +115,6 @@ class BoardItemState<T> extends State<BoardItem<T>>
   _onPanUpdateBuilder() {
     if (!widget.enabled) return null;
     return (event) {
-      panOffset = event.localPosition;
       setState(() {
         _position += event.delta;
         _requestToUpdate();
@@ -139,16 +137,20 @@ class BoardItemState<T> extends State<BoardItem<T>>
     return Positioned(
       top: _position.dy,
       left: _position.dx,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        onLongPress: widget.onLongPress,
-        onPanDown: _onPanDownBuilder(),
-        onPanUpdate: _onPanUpdateBuilder(),
-        onPanEnd: _onPanEndBuilder(),
-        child: ItemInterceptor<T>(
-          unregisterGetter: _unregisterGetter,
-          registerGetter: _registerGetter,
-          child: widget.child,
+      child: Listener(
+        onPointerDown: (event)=>panOffset = event.localPosition,
+        onPointerMove: (event)=>panOffset = event.localPosition,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          onLongPress: widget.onLongPress,
+          onPanDown: _onPanDownBuilder(),
+          onPanUpdate: _onPanUpdateBuilder(),
+          onPanEnd: _onPanEndBuilder(),
+          child: ItemInterceptor<T>(
+            unregisterGetter: _unregisterGetter,
+            registerGetter: _registerGetter,
+            child: widget.child,
+          ),
         ),
       ),
     );

@@ -216,7 +216,7 @@ class _BoardCanvasState<H extends Object, T> extends State<BoardCanvas<H, T>> {
     }
 
     _clearHandlers(keys);
-    if (selected != null && menuOpened) {
+    if (selected != null && menuOpened && widget.enabled) {
       result.add(_buildMenu(context));
     }
 
