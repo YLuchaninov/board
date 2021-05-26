@@ -47,14 +47,18 @@ class BoardItemState<T> extends State<BoardItem<T>>
     if (!requested) {
       requested = true;
       WidgetsBinding.instance?.addPostFrameCallback((_) {
-        final box = context.findRenderObject() as RenderBox;
-        final _anchors = <T, Offset>{};
-        anchors.forEach((key, value){
-          _anchors[key] = box.localToGlobal(anchors[key]!());
-        });
-        widget.onDragging(_position, _anchors);
+        if (mounted) {
+          final box = context.findRenderObject() as RenderBox;
+          final _anchors = <T, Offset>{};
+          anchors.forEach((key, value) {
+            _anchors[key] = box.localToGlobal(anchors[key]!());
+          });
+          widget.onDragging(_position, _anchors);
 
-        setState(() => requested = false);
+          setState(() => requested = false);
+        } else {
+          widget.onDragging(_position, <T, Offset>{});
+        }
       });
     }
   }
@@ -138,8 +142,8 @@ class BoardItemState<T> extends State<BoardItem<T>>
       top: _position.dy,
       left: _position.dx,
       child: Listener(
-        onPointerDown: (event)=>panOffset = event.localPosition,
-        onPointerMove: (event)=>panOffset = event.localPosition,
+        onPointerDown: (event) => panOffset = event.localPosition,
+        onPointerMove: (event) => panOffset = event.localPosition,
         child: GestureDetector(
           onTap: widget.onTap,
           onLongPress: widget.onLongPress,

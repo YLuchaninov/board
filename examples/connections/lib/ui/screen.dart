@@ -93,6 +93,20 @@ class _HomeScreenState extends State<HomeScreen> {
           height: 24,
         ),
         ToolButton(
+          icon: Icons.delete_forever_sharp,
+          onPressed: selected == null
+              ? null
+              : () => setState(() {
+                    final handler = handlers[selected!];
+                    handlers.removeAt(selected!);
+                    connections.removeWhere((connection) {
+                      // remove all connections, which connected with selected item
+                      return handler.data.contains(connection.end) ||
+                          handler.data.contains(connection.start);
+                    });
+                  }),
+        ),
+        ToolButton(
           icon: gridEnabled ? Icons.grid_off : Icons.grid_on,
           onPressed: () => setState(() => gridEnabled = !gridEnabled),
         ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ToolButton extends StatelessWidget {
   final IconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const ToolButton({
     Key? key,
