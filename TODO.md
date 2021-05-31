@@ -2,6 +2,7 @@
 
 * selectable connections
 * setup painter for connections
+* make some parameters as board options
 * to types of connection: straight, smoothed
 * select connection
 * separate `canvas.dart` and `painter.dart` to several abstractions for refactoring 
