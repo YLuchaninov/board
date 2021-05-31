@@ -1,36 +1,44 @@
+import 'package:board/board.dart';
 import 'package:flutter/material.dart';
 
 import '../connections/connection.dart';
 
-class PositionPainter extends CustomPainter {
+class PositionPainter<T> extends CustomPainter {
   final Offset? start;
   final Offset? end;
-  final Iterable<AnchorConnection> connections;
+  final Iterable<AnchorConnection<T>> connections;
   final bool enable;
+  final ConnectionPainter connectionPainter;
 
   PositionPainter({
     required this.connections,
     required this.start,
     required this.end,
     required this.enable,
+    required this.connectionPainter,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final drawPaint = Paint()
-      ..color = Colors.orange
-      ..strokeWidth = 2;
-
+    // draw connections
     for (var connection in connections) {
-      canvas.drawLine(connection.start, connection.end, drawPaint);
+      final data = connectionPainter.getPaintDate<T>(
+        connection.connection,
+        connection.start,
+        connection.end,
+      );
+      canvas.drawPath(data.path, data.paint);
     }
 
-    final paint = Paint()
-      ..color = Colors.red
-      ..strokeWidth = 2;
-
     if (!enable) return;
-    canvas.drawLine(start ?? Offset.zero, end ?? Offset.zero, paint);
+
+    // draw dragging connection
+    final data = connectionPainter.getPaintDate<T>(
+      null,
+      start ?? Offset.zero,
+      end ?? Offset.zero,
+    );
+    canvas.drawPath(data.path, data.paint);
   }
 
   @override

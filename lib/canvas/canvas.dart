@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 
 import 'item.dart';
 import 'empty_painter.dart';
@@ -236,8 +237,8 @@ class _BoardCanvasState<H extends Object, T> extends State<BoardCanvas<H, T>> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapUp: _onBoardTap,
+    return Listener(
+      onPointerUp: _onBoardTap,
       child: CustomPaint(
         painter: widget.showGrid
             ? widget.gridPainter ??

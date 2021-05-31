@@ -8,6 +8,8 @@ import 'paint.dart';
 import 'tap_interceptor.dart';
 import 'anchor_handler.dart';
 import 'connection.dart';
+import 'paints/line_paint.dart';
+import 'selector.dart';
 
 class ConnectionPainter<T> extends StatefulWidget {
   static TapInterceptor<T>? of<T>(BuildContext context) =>
@@ -22,6 +24,9 @@ class ConnectionPainter<T> extends StatefulWidget {
   final Widget child;
   final List<Connection<T>>? connections;
   final OnConnectionCreate<T>? onConnectionCreate;
+  final GlobalKey viewPortKey;
+  final TransformationController transformationController;
+  final ValueChanged<Connection<T>?>? onConnectionTap;
 
   const ConnectionPainter({
     Key? key,
@@ -34,6 +39,9 @@ class ConnectionPainter<T> extends StatefulWidget {
     required this.scale,
     required this.connections,
     required this.onConnectionCreate,
+    required this.viewPortKey,
+    required this.transformationController,
+    this.onConnectionTap,
   }) : super(key: key);
 
   @override
@@ -148,11 +156,12 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
     }
   }
 
-  List<AnchorConnection> _calculateConnections() {
-    final connections = <AnchorConnection>[];
+  List<AnchorConnection<T>> _calculateConnections() {
+    final connections = <AnchorConnection<T>>[];
     widget.connections?.forEach((connection) {
       if (anchors[connection.start] != null && anchors[connection.end] != null)
-        connections.add(AnchorConnection(
+        connections.add(AnchorConnection<T>(
+          connection: connection,
           start: anchors[connection.start]!,
           end: anchors[connection.end]!,
         ));
@@ -166,16 +175,27 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
     final connections = _calculateConnections();
 
     return CustomPaint(
-      foregroundPainter: PositionPainter(
+      foregroundPainter: PositionPainter<T>(
         enable: widget.enabled,
         start: start,
         end: end,
         connections: connections,
+        connectionPainter:
+            LinePainter(), // todo make possible to change Painter for different connections
       ),
       child: TapInterceptor<T>(
         child: Listener(
           onPointerMove: _positionListener,
-          child: widget.child,
+          child: PaintSelector<T>(
+            onTap: (Connection<T>? connection) =>
+                widget.onConnectionTap?.call(connection),
+            painter: LinePainter(),
+            // todo make possible to change Painter for different connections
+            viewPortKey: widget.viewPortKey,
+            connections: connections,
+            child: widget.child,
+            transformationController: widget.transformationController,
+          ),
         ),
         onPointerDown: _onPointerDown,
         onPointerUp: _extractAnchorData,

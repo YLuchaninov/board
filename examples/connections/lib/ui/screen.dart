@@ -168,6 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       () => connections.add(Connection<String>(start, end)),
                     );
                 },
+                onConnectionTap: (connection)=>print(connection),
               ),
             ),
           ],

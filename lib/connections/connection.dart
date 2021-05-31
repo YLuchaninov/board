@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
 
-class AnchorConnection {
+class AnchorConnection<T> {
   final Offset start;
   final Offset end;
+  final Connection<T> connection;
 
   AnchorConnection({
     required this.start,
     required this.end,
+    required this.connection,
   });
 }
 
 class Connection<T> {
   final T start;
   final T end;
+  final dynamic metaData;
 
-  Connection(this.start, this.end);
+  Connection(this.start, this.end, {this.metaData});
 
   @override
   bool operator ==(Object other) =>
@@ -22,4 +25,7 @@ class Connection<T> {
 
   @override
   int get hashCode => hashValues(start, end);
+
+  @override
+  String toString() => 'Connection: $start - $end';
 }

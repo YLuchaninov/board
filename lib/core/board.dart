@@ -33,6 +33,7 @@ class Board<H extends Object, T> extends StatefulWidget {
   final VoidCallback? onBoardTap;
   final List<Connection<T>>? connections;
   final OnConnectionCreate<T>? onConnectionCreate;
+  final ValueChanged<Connection<T>?>? onConnectionTap;
 
   const Board({
     Key? key,
@@ -62,6 +63,7 @@ class Board<H extends Object, T> extends StatefulWidget {
     this.onBoardTap,
     this.connections,
     this.onConnectionCreate,
+    this.onConnectionTap,
   }) : super(key: key);
 
   @override
@@ -148,7 +150,10 @@ class _BoardState<H extends Object, T> extends State<Board<H, T>> {
           connections: widget.connections,
           onConnectionCreate: widget.onConnectionCreate,
           scale: scale,
+          viewPortKey: key,
           drawSate: drawSate,
+          transformationController: controller,
+          onConnectionTap: widget.onConnectionTap,
           child: BoardCanvas<H, T>(
             enabled: widget.enabled,
             viewPortKey: key,
