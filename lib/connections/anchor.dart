@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'painter.dart';
+import 'paint.dart';
 import 'anchor_handler.dart';
 import '../canvas/item.dart';
 

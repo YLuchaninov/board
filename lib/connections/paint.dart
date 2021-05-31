@@ -1,46 +1,209 @@
-import 'package:board/board.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
-import '../connections/connection.dart';
+import '../core/drag_position.dart';
+import '../core/types.dart';
+import 'painter.dart';
+import 'tap_interceptor.dart';
+import 'anchor_handler.dart';
+import 'connection.dart';
+import 'paints/line_paint.dart';
+import 'selector.dart';
 
-class PositionPainter<T> extends CustomPainter {
-  final Offset? start;
-  final Offset? end;
-  final Iterable<AnchorConnection<T>> connections;
-  final bool enable;
-  final ConnectionPainter connectionPainter;
+class ConnectionPainter<T> extends StatefulWidget {
+  static TapInterceptor<T>? of<T>(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<TapInterceptor<T>>();
 
-  PositionPainter({
+  final bool enabled;
+  final ValueNotifier<bool> drawSate;
+  final double scale;
+  final int itemCount;
+  final IndexedPositionBuilder positionBuilder;
+  final ValueNotifier<DragPosition<T>> dragNotifier;
+  final Widget child;
+  final List<Connection<T>>? connections;
+  final OnConnectionCreate<T>? onConnectionCreate;
+  final GlobalKey viewPortKey;
+  final TransformationController transformationController;
+  final ValueChanged<Connection<T>?>? onConnectionTap;
+  final bool showTapZones;
+
+  const ConnectionPainter({
+    Key? key,
+    required this.enabled,
+    required this.child,
+    required this.dragNotifier,
+    required this.itemCount,
+    required this.positionBuilder,
+    required this.drawSate,
+    required this.scale,
     required this.connections,
-    required this.start,
-    required this.end,
-    required this.enable,
-    required this.connectionPainter,
-  });
+    required this.onConnectionCreate,
+    required this.viewPortKey,
+    required this.transformationController,
+    required this.showTapZones,
+    this.onConnectionTap,
+  }) : super(key: key);
 
   @override
-  void paint(Canvas canvas, Size size) {
-    // draw connections
-    for (var connection in connections) {
-      final data = connectionPainter.getPaintDate<T>(
-        connection.connection,
-        connection.start,
-        connection.end,
-      );
-      canvas.drawPath(data.path, data.paint);
-    }
+  _ConnectionPainterState<T> createState() => _ConnectionPainterState<T>();
+}
 
-    if (!enable) return;
+class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
+  final anchors = <T, Offset>{}; // Offset is local position
+  Offset? start = Offset.zero;
+  Offset? end = Offset.zero;
+  T? startData;
 
-    // draw dragging connection
-    final data = connectionPainter.getPaintDate<T>(
-      null,
-      start ?? Offset.zero,
-      end ?? Offset.zero,
-    );
-    canvas.drawPath(data.path, data.paint);
+  @override
+  initState() {
+    widget.dragNotifier.addListener(_onDragging);
+    super.initState();
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  void didUpdateWidget(covariant ConnectionPainter<T> oldWidget) {
+    oldWidget.dragNotifier.removeListener(_onDragging);
+    widget.dragNotifier.addListener(_onDragging);
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    widget.dragNotifier.removeListener(_onDragging);
+    super.dispose();
+  }
+
+  _onDragging() => setState(() {
+        final box = context.findRenderObject() as RenderBox;
+        widget.dragNotifier.value.anchors.forEach((key, value) {
+          anchors[key] = box.globalToLocal(value);
+        });
+      });
+
+  _onPointerDown(T data) {
+    if (!widget.enabled) return;
+
+    widget.drawSate.value = true;
+    end = start = anchors[data]!;
+    startData = data;
+
+    setState(() {});
+  }
+
+  _positionListener(PointerMoveEvent event) {
+    if (widget.drawSate.value && widget.enabled) {
+      setState(() {
+        end = event.localPosition;
+      });
+    }
+  }
+
+  _onPointerCancel() {
+    widget.drawSate.value = false;
+    setState(() {
+      end = start = Offset.zero;
+      startData = null;
+    });
+  }
+
+  _onPointerUp({
+    Offset? globalTap,
+    AnchorData? data,
+    Size? size,
+    Offset? position,
+  }) {
+    if (!widget.enabled) return;
+
+    widget.drawSate.value = false;
+    widget.onConnectionCreate?.call(startData!, data!.data);
+
+    setState(() {
+      end = start = Offset.zero;
+      startData = null;
+    });
+  }
+
+  _extractAnchorData(Offset tapOffset) {
+    final renderObj = context.findRenderObject();
+    if (renderObj is RenderBox) {
+      final localOffset = renderObj.globalToLocal(tapOffset);
+
+      final hitTestResult = BoxHitTestResult();
+      if (!renderObj.hitTest(hitTestResult, position: localOffset)) return;
+
+      try {
+        final entry = hitTestResult.path.toList().firstWhere((entry) {
+          final target = entry.target;
+          if (target is RenderMetaData) {
+            final metaData = target.metaData;
+            if (metaData is AnchorData) return true;
+          }
+          return false;
+        });
+
+        final target = entry.target;
+        final metaData = (target as RenderMetaData).metaData;
+
+        _onPointerUp(
+          data: metaData,
+          position: target.localToGlobal(Offset.zero),
+          size: target.size,
+          globalTap: tapOffset,
+        );
+      } catch (e) {
+        _onPointerCancel();
+      }
+    }
+  }
+
+  List<AnchorConnection<T>> _calculateConnections() {
+    final connections = <AnchorConnection<T>>[];
+    widget.connections?.forEach((connection) {
+      if (anchors[connection.start] != null && anchors[connection.end] != null)
+        connections.add(AnchorConnection<T>(
+          connection: connection,
+          start: anchors[connection.start]!,
+          end: anchors[connection.end]!,
+        ));
+    });
+
+    return connections;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final connections = _calculateConnections();
+
+    return CustomPaint(
+      foregroundPainter: PositionPainter<T>(
+        enable: widget.enabled,
+        start: start,
+        end: end,
+        connections: connections,
+        connectionPainter:
+            LinePainter(), // todo make possible to change Painter for different connections
+      ),
+      child: TapInterceptor<T>(
+        child: Listener(
+          onPointerMove: _positionListener,
+          child: PaintSelector<T>(
+            onTap: (Connection<T>? connection) =>
+                widget.onConnectionTap?.call(connection),
+            painter: LinePainter(),
+            // todo make possible to change Painter for different connections
+            viewPortKey: widget.viewPortKey,
+            connections: connections,
+            child: widget.child,
+            transformationController: widget.transformationController,
+            showTapZones: widget.showTapZones,
+          ),
+        ),
+        onPointerDown: _onPointerDown,
+        onPointerUp: _extractAnchorData,
+        onPointerCancel: _onPointerCancel,
+      ),
+    );
+  }
 }

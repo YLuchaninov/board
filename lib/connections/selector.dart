@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'connection_painter.dart';
 import 'connection.dart';
+import 'paints/debug_paint.dart';
 
 const double _tapTolerance = 10;
 
@@ -15,6 +16,7 @@ class PaintSelector<T> extends StatelessWidget {
   final List<AnchorConnection<T>> connections;
   final ConnectionPainter painter;
   final TransformationController transformationController;
+  final bool showTapZones;
 
   const PaintSelector({
     Key? key,
@@ -24,6 +26,7 @@ class PaintSelector<T> extends StatelessWidget {
     required this.connections,
     required this.painter,
     required this.transformationController,
+    required this.showTapZones,
   }) : super(key: key);
 
   _onTap(Offset offset) async {
@@ -38,16 +41,16 @@ class PaintSelector<T> extends StatelessWidget {
         viewPortKey.currentContext!.findRenderObject() as RenderBox;
     final viewPortSize = viewPortBox.size;
     final viewPortLeftTop = Offset(translation.x, translation.y);
-    final _width = viewPortSize.width~/scale;
-    final _height = viewPortSize.height~/scale;
+    final _width = viewPortSize.width ~/ scale;
+    final _height = viewPortSize.height ~/ scale;
 
     // draw connections
     int color = 1;
     connections.forEach((connection) {
       final data = painter.getPaintDate<T>(
         connection.connection,
-        connection.start + viewPortLeftTop/scale,
-        connection.end + viewPortLeftTop/scale,
+        connection.start + viewPortLeftTop / scale,
+        connection.end + viewPortLeftTop / scale,
       );
       final paint = Paint()
         ..style = PaintingStyle.stroke
@@ -64,8 +67,8 @@ class PaintSelector<T> extends StatelessWidget {
     final imgData = await img.toByteData(format: ui.ImageByteFormat.rawRgba);
     final pixelColor = _pixelColorAt(
       byteData: imgData,
-      x: (offset.dx + viewPortLeftTop.dx/scale).toInt(),
-      y: (offset.dy + viewPortLeftTop.dy/scale).toInt(),
+      x: (offset.dx + viewPortLeftTop.dx / scale).toInt(),
+      y: (offset.dy + viewPortLeftTop.dy / scale).toInt(),
       width: _width,
     );
 
@@ -82,6 +85,19 @@ class PaintSelector<T> extends StatelessWidget {
     onTap(null);
   }
 
+  Widget buildChild(BuildContext context) {
+    if (showTapZones)
+      return CustomPaint(
+        foregroundPainter: DebugPainter(
+          connections: connections,
+          painter: painter,
+          tapTolerance: _tapTolerance,
+        ),
+        child: child,
+      );
+    return child;
+  }
+
   @override
   Widget build(BuildContext context) {
     return RawGestureDetector(
@@ -94,13 +110,7 @@ class PaintSelector<T> extends StatelessWidget {
           },
         ),
       },
-      child: CustomPaint(
-        foregroundPainter: DebugPainter(
-          connections: connections,
-          painter: painter,
-        ),
-        child: child,
-      ),
+      child: buildChild(context),
     );
   }
 
@@ -118,36 +128,4 @@ class PaintSelector<T> extends StatelessWidget {
     int rgb = rgbaColor >> 8;
     return rgb + (a << 24);
   }
-}
-
-class DebugPainter<T> extends CustomPainter {
-  // todo remove
-  final List<AnchorConnection<T>> connections;
-  final ConnectionPainter painter;
-
-  DebugPainter({
-    required this.connections,
-    required this.painter,
-  });
-
-  @override
-  void paint(ui.Canvas canvas, ui.Size size) {
-    connections.forEach((connection) {
-      final data = painter.getPaintDate<T>(
-        connection.connection,
-        connection.start,
-        connection.end,
-      );
-      final paint = Paint()
-        ..style = PaintingStyle.stroke
-        ..isAntiAlias = false
-        ..strokeWidth = data.paint.strokeWidth + _tapTolerance
-        ..color = Colors.red.withOpacity(0.5);
-
-      canvas.drawPath(data.path, paint);
-    });
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

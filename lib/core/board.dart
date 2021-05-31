@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../connections/painter.dart';
+import '../connections/paint.dart';
 import '../canvas/canvas.dart';
 import '../core/types.dart';
 import 'drag_position.dart';
@@ -34,6 +34,7 @@ class Board<H extends Object, T> extends StatefulWidget {
   final List<Connection<T>>? connections;
   final OnConnectionCreate<T>? onConnectionCreate;
   final ValueChanged<Connection<T>?>? onConnectionTap;
+  final bool showTapZones;
 
   const Board({
     Key? key,
@@ -64,6 +65,7 @@ class Board<H extends Object, T> extends StatefulWidget {
     this.connections,
     this.onConnectionCreate,
     this.onConnectionTap,
+    this.showTapZones = false,
   }) : super(key: key);
 
   @override
@@ -154,6 +156,7 @@ class _BoardState<H extends Object, T> extends State<Board<H, T>> {
           drawSate: drawSate,
           transformationController: controller,
           onConnectionTap: widget.onConnectionTap,
+          showTapZones: widget.showTapZones,
           child: BoardCanvas<H, T>(
             enabled: widget.enabled,
             viewPortKey: key,
