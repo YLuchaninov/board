@@ -1,5 +1,6 @@
 ## TODO
 
+* selectable connections
 * setup painter for connections
 * to types of connection: straight, smoothed
 * select connection
@@ -13,8 +14,6 @@
 
 ## FIX
 
-* remove connections
-* change logic of switching between selection by tap & longPress
 * board drop point when scale of feedback not equivalent to the 1
 * connections overlapped items & menus
 

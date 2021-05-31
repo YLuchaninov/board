@@ -153,16 +153,17 @@ class _BoardCanvasState<H extends Object, T> extends State<BoardCanvas<H, T>> {
 
   VoidCallback _createOnItemTap(int index) {
     return () {
-      setState(() {
-        selected = selected == index ? null : index;
-        menuOpened = false;
-      });
-      widget.onSelectChange?.call(selected);
+      if (index != selected) {
+        setState(() {
+          selected = index;
+          menuOpened = false;
+        });
+        widget.onSelectChange?.call(selected);
+      }
     };
   }
 
   VoidCallback _createOnItemLongPress(int index) {
-    // todo change logic of switching between selection by tap & longPress
     return () {
       var requestFlag = false;
       menuOpened = widget.longPressMenu;
@@ -206,7 +207,17 @@ class _BoardCanvasState<H extends Object, T> extends State<BoardCanvas<H, T>> {
         enabled: widget.enabled && !widget.drawSate.value,
         position: offset,
         onChange: (_offset) => widget.onPositionChange?.call(i, _offset),
-        onDragging: (_offset, _anchors) => widget.onDragging(i, _offset, _anchors),
+        onDragging: (_offset, _anchors) {
+          widget.onDragging(i, _offset, _anchors);
+
+          // hide menu when drag selected item
+          if(selected == i) {
+            selected = null;
+            WidgetsBinding.instance!.addPostFrameCallback((_) {
+              widget.onSelectChange?.call(null);
+            });
+          }
+        },
         child: child,
         onTap: _createOnItemTap(i),
         onLongPress: _createOnItemLongPress(i),
@@ -226,7 +237,7 @@ class _BoardCanvasState<H extends Object, T> extends State<BoardCanvas<H, T>> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: _onBoardTap,
+      onTapUp: _onBoardTap,
       child: CustomPaint(
         painter: widget.showGrid
             ? widget.gridPainter ??
@@ -260,7 +271,7 @@ class _BoardCanvasState<H extends Object, T> extends State<BoardCanvas<H, T>> {
   _dropNewItem(H sourceData, Offset offset) {
     final renderObject = context.findRenderObject() as RenderBox;
     final _position = renderObject.globalToLocal(offset);
-    // todo center widget
+    // todo center widget in zooming case
 
     widget.onAddFromSource?.call(sourceData, _position);
     return true;
