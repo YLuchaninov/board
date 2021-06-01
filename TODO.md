@@ -1,6 +1,6 @@
 ## TODO
 
-* selectable connections
+* draw as curve
 * setup painter for connections
 * make some parameters as board options
 * to types of connection: straight, smoothed

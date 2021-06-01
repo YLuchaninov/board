@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 
-import '../connection_painter.dart';
+import 'interface.dart';
 import '../connection.dart';
 
 class DebugPainter<T> extends CustomPainter {
@@ -19,9 +19,11 @@ class DebugPainter<T> extends CustomPainter {
   void paint(ui.Canvas canvas, ui.Size size) {
     connections.forEach((connection) {
       final data = painter.getPaintDate<T>(
-        connection.connection,
-        connection.start,
-        connection.end,
+        connection: connection.connection,
+        start: connection.start,
+        end: connection.end,
+        startAlignment: connection.startAlignment,
+        endAlignment: connection.endAlignment,
       );
       final paint = Paint()
         ..style = PaintingStyle.stroke

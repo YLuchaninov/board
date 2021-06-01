@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../connection_painter.dart';
+import 'interface.dart';
 import '../connection.dart';
 
 class LinePainter extends ConnectionPainter {
@@ -10,11 +10,13 @@ class LinePainter extends ConnectionPainter {
   LinePainter({this.strokeWidth, this.color});
 
   @override
-  PainterData getPaintDate<T>(
-    Connection<T>? connection,
-    Offset start,
-    Offset end,
-  ) {
+  PainterData getPaintDate<T>({
+    required Connection<T>? connection,
+    required Offset start,
+    required Offset end,
+    required Alignment? startAlignment,
+    required Alignment? endAlignment,
+  }) {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth ?? 2.0

@@ -16,3 +16,4 @@ typedef void RegisterAnchorGetter<T>(T data, GetAnchor getter);
 typedef void UnregisterAnchorGetter<T>(T data);
 typedef void OnDragging<T>(Offset offset, Map<T, Offset> anchors);
 typedef void OnIndexedDragging<T>(int index, Offset position, Map<T, Offset> anchors);
+typedef void SetAlignment<T>(T data, Alignment? alignment);

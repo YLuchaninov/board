@@ -4,11 +4,15 @@ class AnchorConnection<T> {
   final Offset start;
   final Offset end;
   final Connection<T> connection;
+  final Alignment? startAlignment;
+  final Alignment? endAlignment;
 
   AnchorConnection({
     required this.start,
     required this.end,
     required this.connection,
+    required this.startAlignment, // todo make it simple
+    required this.endAlignment, // todo make it simple
   });
 }
 

@@ -8,12 +8,14 @@ class DrawAnchor<T> extends StatefulWidget {
   final Widget child;
   final T data;
   final Offset anchorOffset;
+  final Alignment? alignment;
 
   const DrawAnchor({
     Key? key,
     required this.child,
     required this.data,
     required this.anchorOffset,
+    this.alignment,
   }) : super(key: key);
 
   @override
@@ -30,6 +32,8 @@ class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
       requestToInit = false;
       final item = BoardItem.of<T>(context);
       item?.registerGetter(widget.data, offsetGetter);
+      final interceptor = ConnectionPainter.of<T>(context);
+      interceptor?.setAlignment(widget.data, widget.alignment);
     }
 
     super.didChangeDependencies();
@@ -41,6 +45,8 @@ class _DrawAnchorState<T> extends State<DrawAnchor<T>> {
   void deactivate() {
     final item = BoardItem.of<T>(context);
     item?.unregisterGetter(widget.data);
+    final interceptor = ConnectionPainter.of<T>(context);
+    interceptor?.unsetAlignment(widget.data);
     super.deactivate();
   }
 

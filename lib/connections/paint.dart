@@ -52,6 +52,7 @@ class ConnectionPainter<T> extends StatefulWidget {
 
 class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
   final anchors = <T, Offset>{}; // Offset is local position
+  final alignments = <T, Alignment?>{};
   Offset? start = Offset.zero;
   Offset? end = Offset.zero;
   T? startData;
@@ -71,6 +72,8 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
 
   @override
   void dispose() {
+    anchors.clear();
+    alignments.clear();
     widget.dragNotifier.removeListener(_onDragging);
     super.dispose();
   }
@@ -158,6 +161,10 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
     }
   }
 
+  _setAlignment(T data, Alignment? alignment) => alignments[data] = alignment;
+
+  _unsetAlignment(T data) => alignments.remove(data);
+
   List<AnchorConnection<T>> _calculateConnections() {
     final connections = <AnchorConnection<T>>[];
     widget.connections?.forEach((connection) {
@@ -166,6 +173,8 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
           connection: connection,
           start: anchors[connection.start]!,
           end: anchors[connection.end]!,
+          startAlignment: alignments[connection.start],
+          endAlignment: alignments[connection.end],
         ));
     });
 
@@ -183,7 +192,7 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
         end: end,
         connections: connections,
         connectionPainter:
-        CurvePainter(), // todo make possible to change Painter for different connections
+            CurvePainter(), // todo make possible to change Painter for different connections
       ),
       child: TapInterceptor<T>(
         child: Listener(
@@ -203,6 +212,8 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
         onPointerDown: _onPointerDown,
         onPointerUp: _extractAnchorData,
         onPointerCancel: _onPointerCancel,
+        setAlignment: _setAlignment,
+        unsetAlignment: _unsetAlignment,
       ),
     );
   }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../connection_painter.dart';
+import 'interface.dart';
 import '../connection.dart';
+
+const double _kForce = 150;
 
 class CurvePainter extends ConnectionPainter {
   final double? strokeWidth;
@@ -10,11 +12,13 @@ class CurvePainter extends ConnectionPainter {
   CurvePainter({this.strokeWidth, this.color});
 
   @override
-  PainterData getPaintDate<T>(
-    Connection<T>? connection,
-    Offset start,
-    Offset end,
-  ) {
+  PainterData getPaintDate<T>({
+    required Connection<T>? connection,
+    required Offset start,
+    required Offset end,
+    required Alignment? startAlignment,
+    required Alignment? endAlignment,
+  }) {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth ?? 2.0
@@ -22,21 +26,22 @@ class CurvePainter extends ConnectionPainter {
           ? (color ?? Colors.blue)
           : Colors.lightGreen; // todo setup color
 
-    // start should be before end
-    if (start.dx > end.dx) {
-      Offset tmp = end;
-      end = start;
-      start = tmp;
-    }
+    // make curve path
+    Offset controlStart = start;
+    if (startAlignment != null)
+      controlStart += Offset(_kForce * startAlignment.x, _kForce * startAlignment.y);
 
-    // todo make curve path
+    Offset controlEnd = end;
+    if (endAlignment != null)
+      controlEnd += Offset(_kForce * endAlignment.x, _kForce * endAlignment.y);
+
     final path = Path();
     path.moveTo(start.dx, start.dy);
     path.cubicTo(
-      start.dx + 150,
-      start.dy,
-      end.dx - 150,
-      end.dy,
+      controlStart.dx,
+      controlStart.dy,
+      controlEnd.dx,
+      controlEnd.dy,
       end.dx,
       end.dy,
     );

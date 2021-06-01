@@ -23,9 +23,11 @@ class PositionPainter<T> extends CustomPainter {
     // draw connections
     for (var connection in connections) {
       final data = connectionPainter.getPaintDate<T>(
-        connection.connection,
-        connection.start,
-        connection.end,
+        connection: connection.connection,
+        start: connection.start,
+        end: connection.end,
+        startAlignment: connection.startAlignment,
+        endAlignment: connection.endAlignment,
       );
       canvas.drawPath(data.path, data.paint);
     }
@@ -34,9 +36,11 @@ class PositionPainter<T> extends CustomPainter {
 
     // draw dragging connection
     final data = connectionPainter.getPaintDate<T>(
-      null,
-      start ?? Offset.zero,
-      end ?? Offset.zero,
+      connection: null,
+      start: start ?? Offset.zero,
+      end: end ?? Offset.zero,
+      startAlignment: null, // todo
+      endAlignment: null, // todo
     );
     canvas.drawPath(data.path, data.paint);
   }

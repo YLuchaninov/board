@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import 'connection_painter.dart';
+import 'paints/interface.dart';
 import 'connection.dart';
 import 'paints/debug_paint.dart';
 
@@ -48,9 +48,11 @@ class PaintSelector<T> extends StatelessWidget {
     int color = 1;
     connections.forEach((connection) {
       final data = painter.getPaintDate<T>(
-        connection.connection,
-        connection.start + viewPortLeftTop / scale,
-        connection.end + viewPortLeftTop / scale,
+        connection: connection.connection,
+        start: connection.start + viewPortLeftTop / scale,
+        end: connection.end + viewPortLeftTop / scale,
+        startAlignment: connection.startAlignment,
+        endAlignment: connection.endAlignment,
       );
       final paint = Paint()
         ..style = PaintingStyle.stroke
