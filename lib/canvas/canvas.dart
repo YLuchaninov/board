@@ -32,6 +32,7 @@ class BoardCanvas<H extends Object, T> extends StatefulWidget {
   final IndexedMenuBuilder? menuBuilder;
   final AnchorSetter? anchorSetter;
   final ValueNotifier<bool> drawSate;
+  final EdgeInsets dragPadding;
 
   const BoardCanvas({
     Key? key,
@@ -52,6 +53,7 @@ class BoardCanvas<H extends Object, T> extends StatefulWidget {
     required this.showGrid,
     required this.viewPortKey,
     required this.drawSate,
+    required this.dragPadding,
     this.gridPainter,
     this.onBoardTap,
     this.onSelectChange,
@@ -212,7 +214,7 @@ class _BoardCanvasState<H extends Object, T> extends State<BoardCanvas<H, T>> {
           widget.onDragging(i, _offset, _anchors);
 
           // hide menu when drag selected item
-          if(selected == i) {
+          if (selected == i) {
             selected = null;
             WidgetsBinding.instance!.addPostFrameCallback((_) {
               widget.onSelectChange?.call(null);
@@ -223,6 +225,12 @@ class _BoardCanvasState<H extends Object, T> extends State<BoardCanvas<H, T>> {
         onTap: _createOnItemTap(i),
         onLongPress: _createOnItemLongPress(i),
         anchorSetter: widget.anchorSetter,
+        draggingLimits: Rect.fromLTWH(
+          widget.dragPadding.left,
+          widget.dragPadding.top,
+          widget.width - widget.dragPadding.horizontal,
+          widget.height - widget.dragPadding.vertical,
+        ),
       ));
       keys.add(child.key);
     }

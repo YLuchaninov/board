@@ -35,8 +35,10 @@ class Board<H extends Object, T> extends StatefulWidget {
   final OnConnectionCreate<T>? onConnectionCreate;
   final ValueChanged<Connection<T>?>? onConnectionTap;
   final bool showTapZones;
-  final EdgeInsets contentPadding;
+  final EdgeInsets boardPadding;
+  final EdgeInsets dragPadding;
   final PainterBuilder<T>? painterBuilder;
+  final OnScroll? onScroll;
 
   const Board({
     Key? key,
@@ -47,7 +49,8 @@ class Board<H extends Object, T> extends StatefulWidget {
     required this.onPositionChange,
     required this.height,
     required this.width,
-    this.contentPadding = const EdgeInsets.all(0),
+    this.boardPadding = const EdgeInsets.all(0),
+    this.dragPadding = const EdgeInsets.all(30),
     this.scale,
     this.maxScale = 3.0,
     this.minScale = 0.5,
@@ -70,6 +73,7 @@ class Board<H extends Object, T> extends StatefulWidget {
     this.onConnectionTap,
     this.showTapZones = false,
     this.painterBuilder,
+    this.onScroll,
   }) : super(key: key);
 
   @override
@@ -134,7 +138,8 @@ class _BoardState<H extends Object, T> extends State<Board<H, T>> {
         widget.onScaleChange?.call(scale);
       });
 
-    // todo make scroll bar
+    final translation = controller.value.getTranslation();
+    widget.onScroll?.call(Offset(translation.x, translation.y),newScale);
   }
 
   @override
@@ -148,7 +153,7 @@ class _BoardState<H extends Object, T> extends State<Board<H, T>> {
         scaleEnabled: !drawSate.value,
         constrained: false,
         panEnabled: !drawSate.value,
-        boundaryMargin: widget.contentPadding,
+        boundaryMargin: widget.boardPadding,
         child: ConnectionPainter<T>(
           enabled: widget.enabled,
           itemCount: widget.itemCount,
@@ -193,6 +198,7 @@ class _BoardState<H extends Object, T> extends State<Board<H, T>> {
             anchorSetter: widget.anchorSetter,
             onBoardTap: widget.onBoardTap,
             drawSate: drawSate,
+            dragPadding: widget.dragPadding,
           ),
         ),
       ),

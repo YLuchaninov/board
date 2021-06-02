@@ -1,10 +1,10 @@
 ## TODO
 
+* drawing connection
 * make some parameters as board options
 * separate `canvas.dart` and `painter.dart` to several abstractions for refactoring 
 * Add time to animation in stick to grid functionality
 * programmable scale anchor point move to center of view port from the start
-* to add scrolling rules
 * resize item example   
 * to make license
 

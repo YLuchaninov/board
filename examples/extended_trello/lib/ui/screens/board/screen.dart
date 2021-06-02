@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import 'painter.dart';
 import 'widgets/index.dart';
+import '../../index.dart';
 
 class BoardScreen extends StatefulWidget {
   @override
@@ -15,11 +16,17 @@ class _BoardScreenState extends State<BoardScreen> {
   final uuid = Uuid();
   final handlers = <_Handler>[];
   final connections = <Connection<String>>[];
+  final ValueNotifier<RulerPosition> scroller = ValueNotifier<RulerPosition>(
+    RulerPosition(
+      position: Offset.zero,
+      scale: 1,
+    ),
+  );
 
-  bool gridEnabled = true;
-  bool enabled = true;
   int? selected;
   Connection<String>? selectedConnection;
+
+  int columnCount = 1;
 
   @override
   void initState() {
@@ -30,7 +37,7 @@ class _BoardScreenState extends State<BoardScreen> {
         data: [uuid.v1(), uuid.v1()],
       ),
       _Handler(
-        position: Offset(300, 150),
+        position: Offset(COLUMN_WIDTH, 150),
         key: uuid.v1(),
         data: [uuid.v1(), uuid.v1()],
       ),
@@ -111,57 +118,83 @@ class _BoardScreenState extends State<BoardScreen> {
               ],
             ),
             Expanded(
-              child: Board<_Handler, String>(
-                width: 8000,
-                height: 8000,
-                minScale: 1,
-                maxScale: 1,
-                scale: 1,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-                itemBuilder: (context, index) => CardItem(
-                  title: 'Item: $index',
-                  key: Key(handlers[index].key),
-                  anchorData: handlers[index].data,
-                  selected: selected == index,
-                ),
-                itemCount: handlers.length,
-                positionBuilder: (index) => handlers[index].position,
-                onPositionChange: (index, offset) => setState(
-                  () => handlers[index] = handlers[index].update(offset),
-                ),
-                showGrid: gridEnabled,
-                enabled: enabled,
-                onAddFromSource: (handler, offset) => setState(
-                  () => handlers.add(handler.update(offset)),
-                ),
-                anchorSetter: (offset) =>
-                    Offset((offset.dx / 300).round() * 300.0, offset.dy),
-                gridPainter: Painter(
-                  color: Theme.of(context).accentColor.withOpacity(0.5),
-                ),
-                onSelectChange: (index) => setState(() => selected = index),
-                connections: connections,
-                onConnectionCreate: (String start, String end) {
-                  if (start == end) return;
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Ruler(
+                    scroller: scroller,
+                    contentWith: 8000,
+                    child: Container(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                  ),
+                  Divider(height: 1),
+                  Expanded(
+                    child: Board<_Handler, String>(
+                      width: columnCount * COLUMN_WIDTH,
+                      height: 8000,
+                      minScale: 1,
+                      maxScale: 1,
+                      scale: 1,
+                      boardPadding: const EdgeInsets.symmetric(horizontal: 10),
+                      itemBuilder: (context, index) => CardItem(
+                        title: 'Item: $index',
+                        key: Key(handlers[index].key),
+                        anchorData: handlers[index].data,
+                        selected: selected == index,
+                      ),
+                      itemCount: handlers.length,
+                      positionBuilder: (index) => handlers[index].position,
+                      onPositionChange: (index, offset) => setState(
+                        () => handlers[index] = handlers[index].update(offset),
+                      ),
+                      onAddFromSource: (handler, offset) => setState(
+                        () => handlers.add(handler.update(offset)),
+                      ),
+                      anchorSetter: (offset) {
+                        Offset _offset = Offset(
+                          (offset.dx / COLUMN_WIDTH).round() * COLUMN_WIDTH,
+                          offset.dy,
+                        );
+                        if (_offset.dx >= columnCount * COLUMN_WIDTH)
+                          _offset -= Offset(COLUMN_WIDTH,0);
 
-                  final theSameItem = handlers.where((item) =>
-                      (item.data[0] == start && item.data[1] == end) ||
-                      (item.data[0] == end && item.data[1] == start));
-                  if (theSameItem.isNotEmpty) return;
+                        return _offset;
+                      },
+                      gridPainter: Painter(
+                        color: Theme.of(context).accentColor.withOpacity(0.5),
+                      ),
+                      onSelectChange: (index) =>
+                          setState(() => selected = index),
+                      connections: connections,
+                      onConnectionCreate: (String start, String end) {
+                        if (start == end) return;
 
-                  setState(
-                    () => connections.add(Connection<String>(start, end)),
-                  );
-                },
-                onConnectionTap: (connection) => setState(() {
-                  selectedConnection = connection;
-                }),
-                painterBuilder: (connection) => CurvePainter(
-                  strokeWidth: selectedConnection == connection ? 4 : 2,
-                  color: selectedConnection == connection
-                      ? Theme.of(context).accentColor
-                      : Colors.red,
-                ),
+                        final theSameItem = handlers.where((item) =>
+                            (item.data[0] == start && item.data[1] == end) ||
+                            (item.data[0] == end && item.data[1] == start));
+                        if (theSameItem.isNotEmpty) return;
+
+                        setState(
+                          () => connections.add(Connection<String>(start, end)),
+                        );
+                      },
+                      onConnectionTap: (connection) => setState(() {
+                        selectedConnection = connection;
+                      }),
+                      painterBuilder: (connection) => CurvePainter(
+                        strokeWidth: selectedConnection == connection ? 4 : 2,
+                        color: selectedConnection == connection
+                            ? Theme.of(context).accentColor
+                            : Colors.red,
+                      ),
+                      onScroll: (offset, scale) =>
+                          scroller.value = RulerPosition(
+                        position: -offset,
+                        scale: scale,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

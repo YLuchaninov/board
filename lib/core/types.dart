@@ -21,3 +21,4 @@ typedef void OnDragging<T>(Offset offset, Map<T, Offset> anchors);
 typedef void OnIndexedDragging<T>(int index, Offset position, Map<T, Offset> anchors);
 typedef void SetAlignment<T>(T data, Alignment? alignment);
 typedef ConnectionPainter PainterBuilder<T>(Connection<T> connection);
+typedef void OnScroll(Offset offset, double scale);

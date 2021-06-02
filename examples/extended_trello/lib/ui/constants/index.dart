@@ -1,0 +1,1 @@
+const double COLUMN_WIDTH = 350;

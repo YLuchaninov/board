@@ -17,6 +17,7 @@ class BoardItem<T> extends StatefulWidget {
   final VoidCallback onTap;
   final VoidCallback onLongPress;
   final AnchorSetter? anchorSetter;
+  final Rect draggingLimits;
 
   const BoardItem({
     Key? key,
@@ -28,6 +29,7 @@ class BoardItem<T> extends StatefulWidget {
     required this.onTap,
     required this.onLongPress,
     required this.anchorSetter,
+    required this.draggingLimits,
   }) : super(key: key);
 
   @override
@@ -121,6 +123,17 @@ class BoardItemState<T> extends State<BoardItem<T>>
     return (event) {
       setState(() {
         _position += event.delta;
+
+        // set limits
+        if (_position.dy < widget.draggingLimits.top)
+          _position = Offset(_position.dx, widget.draggingLimits.top);
+        if (_position.dy > widget.draggingLimits.bottom)
+          _position = Offset(_position.dx, widget.draggingLimits.bottom);
+        if (_position.dx < widget.draggingLimits.left)
+          _position = Offset(widget.draggingLimits.left, _position.dy);
+        if (_position.dx > widget.draggingLimits.right)
+          _position = Offset(widget.draggingLimits.right, _position.dy);
+
         _requestToUpdate();
       });
     };

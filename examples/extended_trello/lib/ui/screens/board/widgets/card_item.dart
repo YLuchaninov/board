@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:board/board.dart';
 
+import '../../../index.dart';
+
 class CardItem extends StatelessWidget with PreferredSizeWidget {
   final String title;
   final bool selected;
@@ -21,7 +23,7 @@ class CardItem extends StatelessWidget with PreferredSizeWidget {
       children: [
         Container(
           padding: EdgeInsets.symmetric(horizontal: 10),
-          width: 300,
+          width: COLUMN_WIDTH,
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(
@@ -101,7 +103,7 @@ class CardItem extends StatelessWidget with PreferredSizeWidget {
           height: 20,
           child: DrawAnchor<String>(
             alignment: Alignment.centerRight,
-            anchorOffset: Offset(298, 25),
+            anchorOffset: Offset(COLUMN_WIDTH - 2, 25),
             data: anchorData[1],
             child: Container(
               decoration: BoxDecoration(
@@ -116,5 +118,5 @@ class CardItem extends StatelessWidget with PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromWidth(300);
+  Size get preferredSize => Size.fromWidth(COLUMN_WIDTH);
 }
