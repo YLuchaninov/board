@@ -1,28 +1,30 @@
-import 'package:board/board.dart';
 import 'package:flutter/material.dart';
 
-import '../connections/connection.dart';
+import 'connection.dart';
+import '../core/types.dart';
+import 'paints/curve_paint.dart';
 
 class PositionPainter<T> extends CustomPainter {
   final Offset? start;
   final Offset? end;
   final Iterable<AnchorConnection<T>> connections;
   final bool enable;
-  final ConnectionPainter connectionPainter;
+  final PainterBuilder<T>? painterBuilder;
 
   PositionPainter({
     required this.connections,
     required this.start,
     required this.end,
     required this.enable,
-    required this.connectionPainter,
+    required this.painterBuilder,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     // draw connections
     for (var connection in connections) {
-      final data = connectionPainter.getPaintDate<T>(
+      final painter = painterBuilder?.call(connection.connection) ?? CurvePainter();
+      final data = painter.getPaintDate<T>(
         connection: connection.connection,
         start: connection.start,
         end: connection.end,
@@ -35,7 +37,8 @@ class PositionPainter<T> extends CustomPainter {
     if (!enable) return;
 
     // draw dragging connection
-    final data = connectionPainter.getPaintDate<T>(
+    final painter = CurvePainter(); // todo painterBuilder?.call(null) ??
+    final data = painter.getPaintDate<T>(
       connection: null,
       start: start ?? Offset.zero,
       end: end ?? Offset.zero,

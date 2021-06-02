@@ -23,8 +23,8 @@ class CurvePainter extends ConnectionPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth ?? 2.0
       ..color = connection != null
-          ? (color ?? Colors.blue)
-          : Colors.lightGreen; // todo setup color
+          ? (color ?? Colors.red)
+          : Colors.deepOrangeAccent; // todo setup color
 
     // make curve path
     Offset controlStart = start;

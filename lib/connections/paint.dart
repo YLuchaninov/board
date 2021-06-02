@@ -8,7 +8,6 @@ import 'painter.dart';
 import 'tap_interceptor.dart';
 import 'anchor_handler.dart';
 import 'connection.dart';
-import 'paints/curve_paint.dart';
 import 'selector.dart';
 
 class ConnectionPainter<T> extends StatefulWidget {
@@ -28,6 +27,7 @@ class ConnectionPainter<T> extends StatefulWidget {
   final TransformationController transformationController;
   final ValueChanged<Connection<T>?>? onConnectionTap;
   final bool showTapZones;
+  final PainterBuilder<T>? painterBuilder;
 
   const ConnectionPainter({
     Key? key,
@@ -44,6 +44,7 @@ class ConnectionPainter<T> extends StatefulWidget {
     required this.transformationController,
     required this.showTapZones,
     this.onConnectionTap,
+    this.painterBuilder,
   }) : super(key: key);
 
   @override
@@ -191,8 +192,7 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
         start: start,
         end: end,
         connections: connections,
-        connectionPainter:
-            CurvePainter(), // todo make possible to change Painter for different connections
+        painterBuilder: widget.painterBuilder,
       ),
       child: TapInterceptor<T>(
         child: Listener(
@@ -200,8 +200,7 @@ class _ConnectionPainterState<T> extends State<ConnectionPainter<T>> {
           child: PaintSelector<T>(
             onTap: (Connection<T>? connection) =>
                 widget.onConnectionTap?.call(connection),
-            painter: CurvePainter(),
-            // todo make possible to change Painter for different connections
+            painterBuilder: widget.painterBuilder,
             viewPortKey: widget.viewPortKey,
             connections: connections,
             child: widget.child,

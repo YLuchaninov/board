@@ -3,9 +3,10 @@ import 'dart:typed_data';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import 'paints/interface.dart';
+import '../core/types.dart';
 import 'connection.dart';
 import 'paints/debug_paint.dart';
+import 'paints/curve_paint.dart';
 
 const double _tapTolerance = 10;
 
@@ -14,7 +15,7 @@ class PaintSelector<T> extends StatelessWidget {
   final ValueChanged<Connection<T>?> onTap;
   final GlobalKey viewPortKey;
   final List<AnchorConnection<T>> connections;
-  final ConnectionPainter painter;
+  final PainterBuilder<T>? painterBuilder;
   final TransformationController transformationController;
   final bool showTapZones;
 
@@ -24,13 +25,12 @@ class PaintSelector<T> extends StatelessWidget {
     required this.onTap,
     required this.viewPortKey,
     required this.connections,
-    required this.painter,
+    required this.painterBuilder,
     required this.transformationController,
     required this.showTapZones,
   }) : super(key: key);
 
   _onTap(Offset offset) async {
-    // todo refactor
     final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);
 
@@ -47,6 +47,7 @@ class PaintSelector<T> extends StatelessWidget {
     // draw connections
     int color = 1;
     connections.forEach((connection) {
+      final painter = painterBuilder?.call(connection.connection) ?? CurvePainter();
       final data = painter.getPaintDate<T>(
         connection: connection.connection,
         start: connection.start + viewPortLeftTop / scale,
@@ -92,7 +93,7 @@ class PaintSelector<T> extends StatelessWidget {
       return CustomPaint(
         foregroundPainter: DebugPainter(
           connections: connections,
-          painter: painter,
+          painterBuilder: painterBuilder,
           tapTolerance: _tapTolerance,
         ),
         child: child,

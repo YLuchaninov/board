@@ -169,7 +169,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                 },
                 onConnectionTap: (connection)=>print(connection),
-                showTapZones: true,
               ),
             ),
           ],

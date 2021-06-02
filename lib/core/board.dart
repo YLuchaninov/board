@@ -35,6 +35,8 @@ class Board<H extends Object, T> extends StatefulWidget {
   final OnConnectionCreate<T>? onConnectionCreate;
   final ValueChanged<Connection<T>?>? onConnectionTap;
   final bool showTapZones;
+  final EdgeInsets contentPadding;
+  final PainterBuilder<T>? painterBuilder;
 
   const Board({
     Key? key,
@@ -45,6 +47,7 @@ class Board<H extends Object, T> extends StatefulWidget {
     required this.onPositionChange,
     required this.height,
     required this.width,
+    this.contentPadding = const EdgeInsets.all(0),
     this.scale,
     this.maxScale = 3.0,
     this.minScale = 0.5,
@@ -66,6 +69,7 @@ class Board<H extends Object, T> extends StatefulWidget {
     this.onConnectionCreate,
     this.onConnectionTap,
     this.showTapZones = false,
+    this.painterBuilder,
   }) : super(key: key);
 
   @override
@@ -144,6 +148,7 @@ class _BoardState<H extends Object, T> extends State<Board<H, T>> {
         scaleEnabled: !drawSate.value,
         constrained: false,
         panEnabled: !drawSate.value,
+        boundaryMargin: widget.contentPadding,
         child: ConnectionPainter<T>(
           enabled: widget.enabled,
           itemCount: widget.itemCount,
@@ -157,6 +162,7 @@ class _BoardState<H extends Object, T> extends State<Board<H, T>> {
           transformationController: controller,
           onConnectionTap: widget.onConnectionTap,
           showTapZones: widget.showTapZones,
+          painterBuilder: widget.painterBuilder,
           child: BoardCanvas<H, T>(
             enabled: widget.enabled,
             viewPortKey: key,
