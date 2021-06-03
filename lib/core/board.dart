@@ -50,7 +50,7 @@ class Board<H extends Object, T> extends StatefulWidget {
     required this.height,
     required this.width,
     this.boardPadding = const EdgeInsets.all(0),
-    this.dragPadding = const EdgeInsets.all(30),
+    this.dragPadding = const EdgeInsets.all(0),
     this.scale,
     this.maxScale = 3.0,
     this.minScale = 0.5,

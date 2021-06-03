@@ -123,75 +123,112 @@ class _BoardScreenState extends State<BoardScreen> {
                 children: [
                   Ruler(
                     scroller: scroller,
-                    contentWith: 8000,
+                    contentWith: columnCount * COLUMN_WIDTH,
                     child: Container(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10),
                   ),
                   Divider(height: 1),
                   Expanded(
-                    child: Board<_Handler, String>(
-                      width: columnCount * COLUMN_WIDTH,
-                      height: 8000,
-                      minScale: 1,
-                      maxScale: 1,
-                      scale: 1,
-                      boardPadding: const EdgeInsets.symmetric(horizontal: 10),
-                      itemBuilder: (context, index) => CardItem(
-                        title: 'Item: $index',
-                        key: Key(handlers[index].key),
-                        anchorData: handlers[index].data,
-                        selected: selected == index,
-                      ),
-                      itemCount: handlers.length,
-                      positionBuilder: (index) => handlers[index].position,
-                      onPositionChange: (index, offset) => setState(
-                        () => handlers[index] = handlers[index].update(offset),
-                      ),
-                      onAddFromSource: (handler, offset) => setState(
-                        () => handlers.add(handler.update(offset)),
-                      ),
-                      anchorSetter: (offset) {
-                        Offset _offset = Offset(
-                          (offset.dx / COLUMN_WIDTH).round() * COLUMN_WIDTH,
-                          offset.dy,
-                        );
-                        if (_offset.dx >= columnCount * COLUMN_WIDTH)
-                          _offset -= Offset(COLUMN_WIDTH,0);
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: Board<_Handler, String>(
+                            width: columnCount * COLUMN_WIDTH + 1,
+                            height: 8000,
+                            minScale: 1,
+                            maxScale: 1,
+                            scale: 1,
+                            dragPadding: const EdgeInsets.only(
+                                right: COLUMN_WIDTH, top: 6),
+                            itemBuilder: (context, index) => CardItem(
+                              title: 'Item: $index',
+                              key: Key(handlers[index].key),
+                              anchorData: handlers[index].data,
+                              selected: selected == index,
+                            ),
+                            itemCount: handlers.length,
+                            positionBuilder: (index) =>
+                                handlers[index].position,
+                            onPositionChange: (index, offset) => setState(
+                              () => handlers[index] =
+                                  handlers[index].update(offset),
+                            ),
+                            onAddFromSource: (handler, offset) => setState(
+                              () => handlers.add(handler.update(offset)),
+                            ),
+                            anchorSetter: (offset) {
+                              Offset _offset = Offset(
+                                (offset.dx / COLUMN_WIDTH).round() *
+                                    COLUMN_WIDTH,
+                                offset.dy,
+                              );
+                              if (_offset.dx >= columnCount * COLUMN_WIDTH)
+                                _offset -= Offset(COLUMN_WIDTH, 0);
 
-                        return _offset;
-                      },
-                      gridPainter: Painter(
-                        color: Theme.of(context).accentColor.withOpacity(0.5),
-                      ),
-                      onSelectChange: (index) =>
-                          setState(() => selected = index),
-                      connections: connections,
-                      onConnectionCreate: (String start, String end) {
-                        if (start == end) return;
+                              return _offset;
+                            },
+                            gridPainter: Painter(
+                              color: Theme.of(context)
+                                  .accentColor
+                                  .withOpacity(0.5),
+                            ),
+                            onSelectChange: (index) =>
+                                setState(() => selected = index),
+                            connections: connections,
+                            onConnectionCreate: (String start, String end) {
+                              if (start == end) return;
 
-                        final theSameItem = handlers.where((item) =>
-                            (item.data[0] == start && item.data[1] == end) ||
-                            (item.data[0] == end && item.data[1] == start));
-                        if (theSameItem.isNotEmpty) return;
+                              final theSameItem = handlers.where((item) =>
+                                  (item.data[0] == start &&
+                                      item.data[1] == end) ||
+                                  (item.data[0] == end &&
+                                      item.data[1] == start));
+                              if (theSameItem.isNotEmpty) return;
 
-                        setState(
-                          () => connections.add(Connection<String>(start, end)),
-                        );
-                      },
-                      onConnectionTap: (connection) => setState(() {
-                        selectedConnection = connection;
-                      }),
-                      painterBuilder: (connection) => CurvePainter(
-                        strokeWidth: selectedConnection == connection ? 4 : 2,
-                        color: selectedConnection == connection
-                            ? Theme.of(context).accentColor
-                            : Colors.red,
-                      ),
-                      onScroll: (offset, scale) =>
-                          scroller.value = RulerPosition(
-                        position: -offset,
-                        scale: scale,
-                      ),
+                              setState(
+                                () => connections
+                                    .add(Connection<String>(start, end)),
+                              );
+                            },
+                            onConnectionTap: (connection) => setState(() {
+                              selectedConnection = connection;
+                            }),
+                            painterBuilder: (connection) => CurvePainter(
+                              strokeWidth:
+                                  selectedConnection == connection ? 4 : 2,
+                              color: selectedConnection == connection
+                                  ? Theme.of(context).accentColor
+                                  : Colors.red,
+                            ),
+                            onScroll: (offset, scale) =>
+                                scroller.value = RulerPosition(
+                              position: -offset,
+                              scale: scale,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          height: 3,
+                          left: 0,
+                          right: 0,
+                          child: BoardBar(
+                            scroller: scroller,
+                            contentSize: columnCount * COLUMN_WIDTH,
+                            direction: Axis.horizontal,
+                          ),
+                        ),
+                        Positioned(
+                          right: 0,
+                          width: 3,
+                          top: 0,
+                          bottom: 0,
+                          child: BoardBar(
+                            scroller: scroller,
+                            contentSize: 8000,
+                            direction: Axis.vertical,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

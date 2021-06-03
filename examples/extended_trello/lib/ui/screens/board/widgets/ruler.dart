@@ -5,7 +5,6 @@ import 'position.dart';
 class Ruler extends StatefulWidget {
   final ValueNotifier<RulerPosition> scroller;
   final double contentWith;
-  final EdgeInsets? contentPadding;
   final Widget child;
 
   const Ruler({
@@ -13,7 +12,6 @@ class Ruler extends StatefulWidget {
     required this.scroller,
     required this.contentWith,
     required this.child,
-    this.contentPadding,
   }) : super(key: key);
 
   @override
@@ -68,7 +66,6 @@ class _RulerState extends State<Ruler> {
                   height: constraints.maxHeight,
                   child: Container(
                     alignment: Alignment.centerLeft,
-                    padding: widget.contentPadding,
                     child: widget.child,
                   ),
                 ),
