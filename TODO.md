@@ -7,11 +7,13 @@
 * programmable scale anchor point move to center of view port from the start
 * resize item example   
 * to make license
+* setup initial board position
 
 ## FIX
 
 * board drop point when scale of feedback not equivalent to the 1
 * change selection behavior (connection & item selection simultaneously)
+* select connection out board?
 
 ## CHECK
 

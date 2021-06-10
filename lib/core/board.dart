@@ -74,6 +74,7 @@ class Board<H extends Object, T> extends StatefulWidget {
     this.showTapZones = false,
     this.painterBuilder,
     this.onScroll,
+    // todo setup board position
   }) : super(key: key);
 
   @override

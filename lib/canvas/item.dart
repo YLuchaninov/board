@@ -179,11 +179,9 @@ class BoardItemState<T> extends State<BoardItem<T>>
       if (_position != to) {
         animation =
             Tween<Offset>(begin: from, end: to).animate(animationController);
-        WidgetsBinding.instance!.addPostFrameCallback((_) {
-          animationController.forward(from: 0).whenComplete(() {
-            animation = null;
-            widget.onChange(to!);
-          });
+        animationController.forward(from: 0).whenComplete(() {
+          animation = null;
+          widget.onChange(to!);
         });
       }
     }
