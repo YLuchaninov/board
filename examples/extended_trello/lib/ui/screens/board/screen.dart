@@ -25,7 +25,7 @@ class _BoardScreenState extends State<BoardScreen> {
   @override
   Widget build(BuildContext context) {
     final bloc = Provider.of<BLoC>(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Extended Trello'),
@@ -41,10 +41,22 @@ class _BoardScreenState extends State<BoardScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             buildToolbar(
-              context,
-              bloc,
-              badge == null && connection == null,
-            ),
+                context: context,
+                bloc: bloc,
+                selected: badge == null && connection == null,
+                onDelete: () {
+                  if (badge != null) {
+                    bloc!.action.add(DeleteBadge(badge!));
+                    badge = null;
+                  }
+                  if (connection != null) {
+                    bloc!.action.add(RemoveRelation(Relation(
+                      startId: connection!.start,
+                      endId: connection!.end,
+                    )));
+                    connection = null;
+                  }
+                }),
             Expanded(
               child: buildBoard(
                 context: context,

@@ -69,14 +69,6 @@ class _RulerState extends State<Ruler> {
                     child: widget.child,
                   ),
                 ),
-                Positioned(
-                  top: 0,
-                  bottom: 0,
-                  left: 0,
-                  width: 200,
-                  child: Center(
-                      child: Text('${x.toInt()} - ${(x + constraints.maxWidth * scale).toInt()}')),
-                ),
               ],
             ),
           );

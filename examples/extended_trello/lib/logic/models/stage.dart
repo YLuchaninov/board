@@ -9,9 +9,9 @@ class Stage {
     required this.title,
   });
 
-  void addCard(Badge card) => _badges.add(card);
+  void addBadge(Badge badge) => _badges.add(badge);
 
-  bool removeCard(Badge card) => _badges.remove(card);
+  bool removeBadge(Badge badge) => _badges.remove(badge);
 
   List<Badge> get badges => List.unmodifiable(_badges);
 
@@ -23,5 +23,5 @@ class Stage {
       other is Stage && hashCode == other.hashCode;
 
   @override
-  int get hashCode => hashValues(title, _badges);
+  int get hashCode => hashValues(title, _badges.hashCode);
 }

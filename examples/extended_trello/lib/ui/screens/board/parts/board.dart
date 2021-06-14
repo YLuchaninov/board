@@ -31,13 +31,12 @@ Widget buildBoard({
         });
         final connections = <Connection<String>>[];
         project.relations.forEach(
-              (relation) =>
-              connections.add(
-                Connection<String>(
-                  relation.startId,
-                  relation.endId,
-                ),
-              ),
+          (relation) => connections.add(
+            Connection<String>(
+              relation.startId,
+              relation.endId,
+            ),
+          ),
         );
 
         return Column(
@@ -46,7 +45,11 @@ Widget buildBoard({
             Ruler(
               scroller: scroller,
               contentWith: columnCount * COLUMN_WIDTH,
-              child: Container(),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: buildStageHeaders(context, project.stages, bloc),
+              ),
             ),
             Divider(height: 1),
             Expanded(
@@ -63,31 +66,26 @@ Widget buildBoard({
                         right: COLUMN_WIDTH,
                         top: 6,
                       ),
-                      itemBuilder: (context, index) =>
-                          CardItem(
-                            title: badges[index].task.title,
-                            key: Key(badges[index].key),
-                            anchorData: [
-                              badges[index].inputId,
-                              badges[index].outputId,
-                            ],
-                            selected: selectedBadge == badges[index],
-                          ),
+                      itemBuilder: (context, index) => CardItem(
+                        title: badges[index].task.title,
+                        key: Key(badges[index].key),
+                        anchorData: [
+                          badges[index].inputId,
+                          badges[index].outputId,
+                        ],
+                        selected: selectedBadge == badges[index],
+                      ),
                       itemCount: badges.length,
                       positionBuilder: (index) => badges[index].position,
                       onPositionChange: (index, offset) {
                         badges[index].position = offset;
-                        bloc.action.add(UpdateCard(badges[index]));
+                        bloc.action.add(UpdateBadge(badges[index]));
                       },
-                      onAddFromSource: (_, offset) {
-                        int index = (offset.dx / COLUMN_WIDTH).ceil();
-                        if (index < 0) index = 0;
-                        if (index > project.stages.length - 1)
-                          index = project.stages.length - 1;
-
-                        final stage = project.stages[index];
-                        bloc.action.add(CreateCard(stage));
-                      },
+                      onAddFromSource: (_, offset) =>
+                          bloc.action.add(CreateBadge(
+                        stage: null,
+                        offset: offset,
+                      )),
                       anchorSetter: (offset) {
                         Offset _offset = Offset(
                           (offset.dx / COLUMN_WIDTH).round() * COLUMN_WIDTH,
@@ -104,19 +102,20 @@ Widget buildBoard({
                       onSelectChange: (index) =>
                           onSelectChange(index != null ? badges[index] : null),
                       connections: connections,
-                      onConnectionCreate: _onConnectionCreate,
+                      onConnectionCreate: (start, end) {
+                        bloc.action.add(
+                          CreateRelation(Relation(startId: start, endId: end)),
+                        );
+                      },
                       onConnectionTap: onConnectionTap,
-                      painterBuilder: (connection) =>
-                          CurvePainter(
-                            strokeWidth: selectedConnection == connection
-                                ? 4
-                                : 2,
-                            color: selectedConnection == connection
-                                ? theme.accentColor
-                                : Colors.red,
-                          ),
+                      painterBuilder: (connection) => CurvePainter(
+                        strokeWidth: selectedConnection == connection ? 4 : 2,
+                        color: selectedConnection == connection
+                            ? theme.accentColor
+                            : Colors.red,
+                      ),
                       onScroll: (offset, scale) =>
-                      scroller.value = RulerPosition(
+                          scroller.value = RulerPosition(
                         position: -offset,
                         scale: scale,
                       ),
@@ -152,15 +151,16 @@ Widget buildBoard({
       });
 }
 
-void _onConnectionCreate(String start, String end) {
-  // todo if (start == end) return;
-  //
-  // final theSameItem = handlers.where((item) =>
-  //     (item.data[0] == start && item.data[1] == end) ||
-  //     (item.data[0] == end && item.data[1] == start));
-  // if (theSameItem.isNotEmpty) return;
-  //
-  // setState(
-  //   () => connections.add(Connection<String>(start, end)),
-  // );
+List<Widget> buildStageHeaders(
+  BuildContext context,
+  List<Stage> stages,
+  BLoC? bloc,
+) {
+  final result = <Widget>[];
+  stages.forEach((stage) => result.add(StageHeader(
+        bloc: bloc,
+        stage: stage,
+      )));
+
+  return result;
 }

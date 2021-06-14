@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' as material;
 import '../actions.dart';
 import '../../index.dart';
 
@@ -19,22 +20,26 @@ class UpdateStage extends Action {
   });
 }
 
-class CreateCard extends Action {
-  final Stage stage;
+class CreateBadge extends Action {
+  final Stage? stage;
+  final material.Offset? offset;
 
-  CreateCard(this.stage);
+  CreateBadge({
+    required this.stage,
+    required this.offset,
+  });
 }
 
-class DeleteCard extends Action {
-  final Badge card;
+class DeleteBadge extends Action {
+  final Badge badge;
 
-  DeleteCard(this.card);
+  DeleteBadge(this.badge);
 }
 
-class UpdateCard extends Action {
-  final Badge card;
+class UpdateBadge extends Action {
+  final Badge badge;
 
-  UpdateCard(this.card);
+  UpdateBadge(this.badge);
 }
 
 class CreateRelation extends Action {

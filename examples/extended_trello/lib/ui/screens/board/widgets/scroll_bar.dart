@@ -68,18 +68,18 @@ class _BoardBarState extends State<BoardBar> {
   }
 
   List<double> _getConstraints(BoxConstraints constraints) {
-    final result = <double>[0,0];
+    final result = <double>[0, 0];
+    if (widget.contentSize <= 0) return result;
+
     if (widget.direction == Axis.vertical) {
-      result[0] = constraints.maxHeight *
-          constraints.maxHeight /
-          widget.contentSize;
+      result[0] =
+          constraints.maxHeight * constraints.maxHeight / widget.contentSize;
       result[1] = y *
           (constraints.maxHeight - result[0]) /
           (widget.contentSize - constraints.maxHeight);
     } else {
-      result[0] = constraints.maxWidth *
-          constraints.maxWidth /
-          widget.contentSize;
+      result[0] =
+          constraints.maxWidth * constraints.maxWidth / widget.contentSize;
       result[1] = x *
           (constraints.maxWidth - result[0]) /
           (widget.contentSize - constraints.maxWidth);

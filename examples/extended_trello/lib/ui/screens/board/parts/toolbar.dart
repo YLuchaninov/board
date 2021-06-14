@@ -4,23 +4,18 @@ import 'package:board/board.dart';
 import '../widgets/index.dart';
 import '../../../../logic/index.dart';
 
-Widget buildToolbar(BuildContext context, BLoC? bloc, bool selected) {
+Widget buildToolbar({
+  required BuildContext context,
+  required BLoC? bloc,
+  required bool selected,
+  required VoidCallback onDelete,
+}) {
   return ToolBar(
     children: [
-      Divider(
-        height: 1,
-      ),
-      BoardSource<Object>(
-        boardData: {},
-        source: ToolButton(
-          tooltip: 'Add Stage',
-          icon: Icons.add_box_outlined,
-          onPressed: () => bloc!.action.add(CreateStage()),
-        ),
-        feedback: CardItem(
-          title: 'New Card',
-          anchorData: ['', ''],
-        ),
+      ToolButton(
+        tooltip: 'Add Stage',
+        icon: Icons.add_box_outlined,
+        onPressed: () => bloc!.action.add(CreateStage()),
       ),
       Divider(
         height: 4,
@@ -28,26 +23,8 @@ Widget buildToolbar(BuildContext context, BLoC? bloc, bool selected) {
       ToolButton(
         tooltip: 'Delete selected',
         icon: Icons.delete_forever_sharp,
-        onPressed: selected ? null : _deleteSelection,
+        onPressed: selected ? null : onDelete,
       ),
     ],
   );
-}
-
-void _deleteSelection() {
-  // todo setState(() {
-  //   if (selected != null) {
-  //     final handler = handlers[selected!];
-  //     handlers.removeAt(selected!);
-  //     connections.removeWhere((connection) {
-  //       // remove all connections, which connected with selected item
-  //       return handler.data.contains(connection.end) ||
-  //           handler.data.contains(connection.start);
-  //     });
-  //   }
-  //   if (selectedConnection != null) {
-  //     connections.remove(selectedConnection);
-  //     selectedConnection = null;
-  //   }
-  // });
 }

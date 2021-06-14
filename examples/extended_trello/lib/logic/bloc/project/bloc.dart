@@ -7,7 +7,6 @@ import '../../index.dart';
 import '../../../ui/constants/index.dart';
 
 class ProjectBLoC {
-
   final _actionController = PublishSubject<Action>();
 
   Sink<Action> get action => _actionController.sink;
@@ -25,12 +24,12 @@ class ProjectBLoC {
   late Project _project;
 
   _init() async {
-    // create project with one stage and one card
+    // create project with one stage and one badge
     _project = Project(title: 'Demo Project');
     final stage = Stage(title: 'POC');
     _project.addStage(stage);
     final task = Task(title: 'New Task', description: 'Some Description');
-    final card = Badge(
+    final badge = Badge(
       position: material.Offset(
         (_project.stages.length - 1) * COLUMN_WIDTH,
         stage.badges.length * DEFAULT_CARD_HEIGHT,
@@ -40,7 +39,7 @@ class ProjectBLoC {
       outputId: _uuid.v1(),
       key: _uuid.v1(),
     );
-    stage.addCard(card);
+    stage.addBadge(badge);
 
     _projectSubject.add(_project);
   }
@@ -56,14 +55,14 @@ class ProjectBLoC {
       case UpdateStage:
         _updateStage(action as UpdateStage);
         break;
-      case CreateCard:
-        _createCard(action as CreateCard);
+      case CreateBadge:
+        _createBadge(action as CreateBadge);
         break;
-      case DeleteCard:
-        _deleteCard(action as DeleteCard);
+      case DeleteBadge:
+        _deleteBadge(action as DeleteBadge);
         break;
-      case UpdateCard:
-        _updateCard(action as UpdateCard);
+      case UpdateBadge:
+        _updateBadge(action as UpdateBadge);
         break;
       case CreateRelation:
         _createRelation(action as CreateRelation);
@@ -86,30 +85,97 @@ class ProjectBLoC {
   }
 
   void _deleteStage(DeleteStage action) {
-    // todo
+    action.stage.badges.forEach((badge) => _removeBadgeRelation(badge));
+    _project.removeStage(action.stage);
+    _projectSubject.add(_project);
   }
 
   void _updateStage(UpdateStage action) {
     // todo
   }
 
-  void _createCard(CreateCard action) {
-    // todo
+  void _createBadge(CreateBadge action) {
+    final stages = _project.stages;
+    if (stages.length == 0) return;
+
+    final task = Task(title: 'New Task', description: 'Some Description');
+    if (action.offset != null) {
+      final stage = _getStageByOffset(action.offset!);
+      final badge = Badge(
+        position: action.offset ?? material.Offset.zero,
+        task: task,
+        inputId: _uuid.v1(),
+        outputId: _uuid.v1(),
+        key: _uuid.v1(),
+      );
+      stage.addBadge(badge);
+    } else if (action.stage != null) {
+      final badge = Badge(
+        position: material.Offset(
+          (stages.indexOf(action.stage!)) * COLUMN_WIDTH,
+          action.stage!.badges.length * DEFAULT_CARD_HEIGHT, // todo
+        ),
+        task: task,
+        inputId: _uuid.v1(),
+        outputId: _uuid.v1(),
+        key: _uuid.v1(),
+      );
+      action.stage!.addBadge(badge);
+    }
+    _projectSubject.add(_project);
   }
 
-  void _deleteCard(DeleteCard action) {
-    // todo
+  void _deleteBadge(DeleteBadge action) {
+    _project.stages.forEach((stage) => stage.removeBadge(action.badge));
+    _removeBadgeRelation(action.badge);
+    _projectSubject.add(_project);
   }
 
-  void _updateCard(UpdateCard action) {
-    // todo
+  void _updateBadge(UpdateBadge action) {
+    final badge = action.badge;
+    _project.stages.forEach((stage) => stage.removeBadge(badge));
+
+    final stage = _getStageByOffset(badge.position);
+    stage.addBadge(badge);
+    _projectSubject.add(_project);
   }
 
   void _createRelation(CreateRelation action) {
-    // todo
+    if (action.relation.startId == action.relation.endId) return;
+    bool theSameBadge = false;
+    _project.stages.forEach((stage) {
+      stage.badges.forEach((badge) {
+        theSameBadge = ((badge.outputId == action.relation.startId) ||
+                (badge.outputId == action.relation.endId)) &&
+            ((badge.inputId == action.relation.startId) ||
+                (badge.inputId == action.relation.endId));
+      });
+    });
+    if(theSameBadge) return;
+
+    _project.addRelation(action.relation);
+    _projectSubject.add(_project);
   }
 
   void _removeRelation(RemoveRelation action) {
-    // todo
+    _project.removeRelation(action.relation);
+    _projectSubject.add(_project);
+  }
+
+  Stage _getStageByOffset(material.Offset offset) {
+    final stages = _project.stages;
+    int index = (offset.dx / COLUMN_WIDTH).ceil();
+    if (index < 0) index = 0;
+    if (index > stages.length - 1) index = stages.length - 1;
+
+    return stages[index];
+  }
+
+  void _removeBadgeRelation(Badge badge) {
+    _project.removeRelationWhere((relation) =>
+        (relation.startId == badge.inputId) ||
+        (relation.startId == badge.outputId) ||
+        (relation.endId == badge.inputId) ||
+        (relation.endId == badge.outputId));
   }
 }
